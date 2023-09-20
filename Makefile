@@ -13,3 +13,5 @@ m-status:
 #run app
 start:
 	go run ./cmd/main.go
+dev:
+	air server --port 3001
