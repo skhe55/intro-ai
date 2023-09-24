@@ -5,18 +5,28 @@ import (
 	"intro-ai/config"
 	"intro-ai/internal/server"
 	"time"
+
+	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 )
 
 func main() {
-	_, err := config.LoadConfig()
+	cfg, err := config.LoadConfig()
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	s := server.NewServer(":3000", nil, 10*time.Second, 10*time.Second, 1<<20)
+	db, err := sqlx.Connect("postgres", cfg.PsqlDSN)
+	if err != nil {
+		fmt.Printf("failed connect to database: %s", err)
+		return
+	}
+	defer db.Close()
+
+	s := server.NewServer(":3000", nil, 10*time.Second, 10*time.Second, 1<<20, cfg, db)
 	if err := s.Run(); err != nil {
-		fmt.Println("error: ", err)
+		fmt.Printf("EROROR OCCURED WHILE SHUTDOWN SERVER: %s", err)
 		return
 	}
 }

@@ -7,7 +7,8 @@ import (
 )
 
 type Config struct {
-	PsqlDSN string `yaml:"psql_dsn"`
+	PsqlDSN      string `yaml:"psql_dsn"`
+	JwtSecretKey string `yaml:"jwt_secret_key"`
 }
 
 func LoadConfig() (*Config, error) {

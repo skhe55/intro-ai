@@ -3,6 +3,7 @@ package response
 type Response struct {
 	Message string
 	Status  string
+	Result  interface{}
 }
 
 const (
@@ -10,9 +11,11 @@ const (
 	StatusError = "Error"
 )
 
-func OK() Response {
+func OK(message string, result interface{}) Response {
 	return Response{
-		Status: StatusOK,
+		Message: message,
+		Status:  StatusOK,
+		Result:  &result,
 	}
 }
 
@@ -20,5 +23,6 @@ func Error(message string) Response {
 	return Response{
 		Message: message,
 		Status:  StatusError,
+		Result:  nil,
 	}
 }

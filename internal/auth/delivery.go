@@ -3,5 +3,6 @@ package auth
 import "net/http"
 
 type Handlers interface {
-	Hello() http.HandlerFunc
+	Register() http.HandlerFunc
+	Login() http.HandlerFunc
 }

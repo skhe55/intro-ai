@@ -1,0 +1,15 @@
+{
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5433,
+            "driver": "PostgreSQL",
+            "name": "intro-ai",
+            "group": "intro-ai",
+            "database": "intro-ai",
+            "username": "postgres",
+            "password": "root"
+        }
+    ]
+}
