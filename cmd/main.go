@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"intro-ai/config"
 	"intro-ai/internal/server"
+	"intro-ai/pkg/logger"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -17,16 +18,19 @@ func main() {
 		return
 	}
 
+	logger := logger.NewApiLogger(cfg)
+	logger.InitLogger()
+
 	db, err := sqlx.Connect("postgres", cfg.PsqlDSN)
 	if err != nil {
-		fmt.Printf("failed connect to database: %s", err)
+		logger.Error("FAILED CONNECT TO DATABASE", err)
 		return
 	}
 	defer db.Close()
 
-	s := server.NewServer(":3000", nil, 10*time.Second, 10*time.Second, 1<<20, cfg, db)
+	s := server.NewServer(":3000", nil, 10*time.Second, 10*time.Second, 1<<20, cfg, db, logger)
 	if err := s.Run(); err != nil {
-		fmt.Printf("EROROR OCCURED WHILE SHUTDOWN SERVER: %s", err)
+		logger.Error("FAILED START SERVER", err)
 		return
 	}
 }

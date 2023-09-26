@@ -6,7 +6,6 @@ import (
 	"intro-ai/internal/auth"
 	"intro-ai/internal/models"
 	"intro-ai/pkg/utils"
-	"log"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -18,11 +17,6 @@ type authRepository struct {
 func NewAuthRepository(db *sqlx.DB) auth.Repository {
 	return &authRepository{db: db}
 }
-
-var (
-	REGISTER_NAME = "Register"
-	LOGIN_NAME    = "Login"
-)
 
 func (r *authRepository) Register(ctx context.Context, user *models.User) (*models.User, error) {
 	tx, err := r.db.BeginTx(ctx, nil)
@@ -39,18 +33,17 @@ func (r *authRepository) Register(ctx context.Context, user *models.User) (*mode
 	)
 
 	if err := rowExistedUser.Err(); err != nil {
-		return nil, utils.RollbackTransaction(tx, REGISTER_NAME, err)
+		return nil, utils.RollbackTransaction(tx, err)
 	}
 
 	if err := rowExistedUser.Scan(&id); err == nil {
-		return nil, utils.RollbackTransaction(tx, REGISTER_NAME, errors.New("пользователь уже существует"))
+		return nil, utils.RollbackTransaction(tx, errors.New("пользователь уже существует"))
 	}
 
 	var newUser models.User
 
 	if err := user.HashPassword(); err != nil {
-		log.Printf("ERROR OCCURED WHILE PASSWORD HASHING: %s", err)
-		return nil, utils.RollbackTransaction(tx, REGISTER_NAME, err)
+		return nil, utils.RollbackTransaction(tx, err)
 	}
 
 	row := tx.QueryRowContext(
@@ -62,7 +55,7 @@ func (r *authRepository) Register(ctx context.Context, user *models.User) (*mode
 	)
 
 	if err := row.Err(); err != nil {
-		return nil, utils.RollbackTransaction(tx, REGISTER_NAME, err)
+		return nil, utils.RollbackTransaction(tx, err)
 	}
 
 	if err := row.Scan(
@@ -73,7 +66,7 @@ func (r *authRepository) Register(ctx context.Context, user *models.User) (*mode
 		&newUser.CreatedAt,
 		&newUser.DeletedAt,
 	); err != nil {
-		return nil, utils.RollbackTransaction(tx, REGISTER_NAME, err)
+		return nil, utils.RollbackTransaction(tx, err)
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -98,7 +91,7 @@ func (a *authRepository) Login(ctx context.Context, user *models.User) (*models.
 	)
 
 	if err := row.Err(); err != nil {
-		return nil, utils.RollbackTransaction(tx, LOGIN_NAME, err)
+		return nil, utils.RollbackTransaction(tx, err)
 	}
 
 	if err := row.Scan(
@@ -109,7 +102,7 @@ func (a *authRepository) Login(ctx context.Context, user *models.User) (*models.
 		&loggedUser.CreatedAt,
 		&loggedUser.DeletedAt,
 	); err != nil {
-		return nil, utils.RollbackTransaction(tx, LOGIN_NAME, err)
+		return nil, utils.RollbackTransaction(tx, err)
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -117,4 +110,30 @@ func (a *authRepository) Login(ctx context.Context, user *models.User) (*models.
 	}
 
 	return &loggedUser, nil
+}
+
+func (a *authRepository) GetUserById(ctx context.Context, id uint64) (*models.User, error) {
+	conn, err := a.db.Connx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close()
+
+	var user *models.User
+
+	row := conn.QueryRowxContext(
+		ctx,
+		"SELECT * FROM users WHERE id = $1 RETURNING *",
+		id,
+	)
+
+	if err := row.Err(); err != nil {
+		return nil, err
+	}
+
+	if err := row.StructScan(&user); err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }

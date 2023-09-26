@@ -2,11 +2,11 @@ package http
 
 import (
 	"encoding/json"
-	"fmt"
 	"intro-ai/config"
 	"intro-ai/internal/auth"
 	"intro-ai/internal/models"
 	"intro-ai/internal/server/response"
+	"intro-ai/pkg/logger"
 	"intro-ai/pkg/utils"
 	"intro-ai/pkg/utils/httpError"
 	"net/http"
@@ -20,11 +20,12 @@ var (
 
 type authHandlers struct {
 	cfg         *config.Config
+	logger      logger.Logger
 	authService auth.Service
 }
 
-func NewAuthHandlers(cfg *config.Config, authService auth.Service) auth.Handlers {
-	return &authHandlers{cfg: cfg, authService: authService}
+func NewAuthHandlers(cfg *config.Config, logger logger.Logger, authService auth.Service) auth.Handlers {
+	return &authHandlers{cfg: cfg, logger: logger, authService: authService}
 }
 
 func (h *authHandlers) Register() http.HandlerFunc {
@@ -47,7 +48,7 @@ func (h *authHandlers) Register() http.HandlerFunc {
 
 		createdUser, err := h.authService.Register(r.Context(), &user)
 		if err != nil {
-			fmt.Printf("ERROR OCCURED IN REGISTER SERVICE: %v", err)
+			h.logger.Errorf("User already exist, err: %v", err)
 			if strings.Contains(err.Error(), "пользователь уже существует") {
 				httpError.NonInternalError(http.StatusBadRequest, "Пользователь уже существует.")
 			} else {
@@ -87,7 +88,7 @@ func (h *authHandlers) Login() http.HandlerFunc {
 
 		loggedUser, err := h.authService.Login(r.Context(), &user)
 		if err != nil {
-			fmt.Printf("ERROR OCCURED IN LOGIN SERVICE: %v", err)
+			h.logger.Error(err)
 			httpError.InternalError()
 			return
 		}

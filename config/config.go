@@ -9,6 +9,15 @@ import (
 type Config struct {
 	PsqlDSN      string `yaml:"psql_dsn"`
 	JwtSecretKey string `yaml:"jwt_secret_key"`
+	Logger       Logger `yaml:"logger"`
+}
+
+type Logger struct {
+	Development       bool
+	DisableCaller     bool
+	DisableStacktrace bool
+	Encoding          string
+	Level             string
 }
 
 func LoadConfig() (*Config, error) {

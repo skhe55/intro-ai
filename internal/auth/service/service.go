@@ -5,16 +5,18 @@ import (
 	"intro-ai/config"
 	"intro-ai/internal/auth"
 	"intro-ai/internal/models"
+	"intro-ai/pkg/logger"
 	"intro-ai/pkg/utils"
 )
 
 type authService struct {
 	cfg            *config.Config
+	logger         logger.Logger
 	authRepository auth.Repository
 }
 
-func NewAuthService(cfg *config.Config, authRepository auth.Repository) auth.Service {
-	return &authService{cfg: cfg, authRepository: authRepository}
+func NewAuthService(cfg *config.Config, logger logger.Logger, authRepository auth.Repository) auth.Service {
+	return &authService{cfg: cfg, logger: logger, authRepository: authRepository}
 }
 
 func (u *authService) Register(ctx context.Context, user *models.User) (*models.UserWithToken, error) {
@@ -57,4 +59,12 @@ func (u *authService) Login(ctx context.Context, user *models.User) (*models.Use
 		UserName: loggedUser.UserName,
 		Token:    token,
 	}, nil
+}
+
+func (u *authService) GetUserById(ctx context.Context, id uint64) (*models.User, error) {
+	user, err := u.authRepository.GetUserById(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
 }

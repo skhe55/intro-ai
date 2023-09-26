@@ -2,6 +2,7 @@ package httpError
 
 import (
 	"encoding/json"
+	"errors"
 	"intro-ai/internal/server/response"
 	"net/http"
 )
@@ -9,6 +10,11 @@ import (
 var (
 	INTERNAL     = "INTERNAL ERROR"
 	NON_INTERNAL = "ERROR"
+)
+
+var (
+	InvalidJWTToken  = errors.New("INVALID JWT TOKEN")
+	InvalidJWTClaims = errors.New("INVALID JWT CLAIMS")
 )
 
 type HttpError struct {

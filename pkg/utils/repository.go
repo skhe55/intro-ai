@@ -5,13 +5,13 @@ import (
 	"fmt"
 )
 
-func RollbackTransaction(tx *sql.Tx, fn string, internalError error) error {
+func RollbackTransaction(tx *sql.Tx, internalError error) error {
 	rbErr := tx.Rollback()
 
 	if rbErr != nil && internalError != nil {
-		return fmt.Errorf("ERROR OCCURED IN [%s] RB ERROR: %v INTERNAL ERROR: %v", fn, rbErr, internalError)
+		return fmt.Errorf("RB ERROR: %v INTERNAL ERROR: %v", rbErr, internalError)
 	} else if rbErr == nil && internalError != nil {
-		return fmt.Errorf("ERROR OCCURED IN [%s] INTERNAL ERROR: %v", fn, internalError)
+		return fmt.Errorf("INTERNAL ERROR: %v", internalError)
 	}
 
 	return nil

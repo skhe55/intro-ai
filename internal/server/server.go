@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"intro-ai/config"
+	"intro-ai/pkg/logger"
 	"log"
 	"net/http"
 	"os"
@@ -21,9 +22,19 @@ type Server struct {
 	MaxHeaderBytes int
 	cfg            *config.Config
 	db             *sqlx.DB
+	logger         logger.Logger
 }
 
-func NewServer(Addr string, Handler http.Handler, ReadTimeout time.Duration, WriteTimeout time.Duration, MaxHeaderBytes int, cfg *config.Config, db *sqlx.DB) *Server {
+func NewServer(
+	Addr string,
+	Handler http.Handler,
+	ReadTimeout time.Duration,
+	WriteTimeout time.Duration,
+	MaxHeaderBytes int,
+	cfg *config.Config,
+	db *sqlx.DB,
+	logger logger.Logger,
+) *Server {
 	return &Server{
 		Addr:           Addr,
 		Handler:        Handler,
@@ -32,6 +43,7 @@ func NewServer(Addr string, Handler http.Handler, ReadTimeout time.Duration, Wri
 		MaxHeaderBytes: MaxHeaderBytes,
 		cfg:            cfg,
 		db:             db,
+		logger:         logger,
 	}
 }
 
