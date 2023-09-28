@@ -1,0 +1,7 @@
+@use "./variables.scss" as *;
+
+@mixin text-large($color, $weight: bold) {
+    font-weight: $weight;
+    font-size: $text-large-size;
+    color: $color;
+}
