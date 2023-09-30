@@ -29,6 +29,10 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"sass": "^1.68.0"
+		"canvas": "^2.11.2",
+		"konva": "^9.2.1",
+		"path": "^0.12.7",
+		"sass": "^1.68.0",
+		"svelte-konva": "^0.3.1"
 	}
 }
