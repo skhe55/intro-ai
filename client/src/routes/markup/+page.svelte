@@ -1,106 +1,141 @@
 <script lang="ts">
-	import Canvas from "$lib/canvas/canvas.svelte";
-    import Square from "$lib/shapes/square.svelte";
-	import type { TSquare } from "$lib/types";
-	import { afterUpdate } from "svelte";
+	import { afterUpdate, onMount } from 'svelte';
+    import { Stage, Layer, Rect, Image, type KonvaMouseEvent } from 'svelte-konva';
 
-    let uuid = crypto.randomUUID();
+	import type { TSquare } from '$lib/types';
+	import { initialSquareCoordinates } from '$constants/index';
+	import Square from '$lib/shapes/square.svelte';
+	import { getPointsUpperRightCorner } from '$lib/utils';
 
-    let squares: TSquare[] = [];
-    let squareCoords: Omit<TSquare, "id"> = {
-        x_top: [0, 0],
-        x_bottom: [0, 0],
-        y_top: [0, 0],
-        y_bottom: [0, 0],
-    };
+	let uuid = crypto.randomUUID();
 
-    let isMarkupMode: boolean = false;
+	let squares: TSquare[] = [];
+	let squareCoords: Omit<TSquare, 'id'> = initialSquareCoordinates;
 
-    const followMouse = (e: MouseEvent) => {
-        if(isMarkupMode) {           
-            squareCoords = {
-                x_top: squareCoords.x_top,
-                x_bottom: [squareCoords.x_top[0], e.offsetY],
-                y_top: [e.offsetX, squareCoords.x_top[1]],
-                y_bottom: [e.offsetX, e.offsetY],
-            }
-        }
-    };
+	let isMarkupMode: boolean = false;
+	let isWatchMode: boolean = false;
+	let image: HTMLOrSVGImageElement;
 
-    const onStartMarking = (e: MouseEvent) => {
-        if(isMarkupMode) {
-            isMarkupMode = false;
-            squares = [...squares, {...squareCoords, id: uuid}];
-        } else {
-            squareCoords = {
-                x_top: [e.offsetX, e.offsetY],
-                x_bottom: [e.offsetX, e.offsetY],
-                y_top: [e.offsetX, e.offsetY],
-                y_bottom: [e.offsetX, e.offsetY],
-            };
-            isMarkupMode = true;
-        }
-    };
+	const onMouseMove = (e: KonvaMouseEvent) => {
+		const { evt } = e.detail;
+		if (isMarkupMode) {
+			squareCoords = {
+				x_top: squareCoords.x_top,
+				x_bottom: [squareCoords.x_top[0], evt.offsetY],
+				y_top: [evt.offsetX, squareCoords.x_top[1]],
+				y_bottom: [evt.offsetX, evt.offsetY]
+			};
+		}
+	};
 
-    const onCancelMarkupMode = (e: MouseEvent) => {
-        if(e.button === 2) {
-            isMarkupMode = false;
-        } 
-    };
-    
-    afterUpdate(() => {
-        uuid = crypto.randomUUID();
-    });
-    $: console.log(squares)
+	const onStartMarking = (e: KonvaMouseEvent) => {
+		const { evt } = e.detail;
+		if (isMarkupMode) {
+			squares = [...squares, { ...squareCoords, id: uuid }];
+			isMarkupMode = false;
+		} else if (!isMarkupMode && !isWatchMode) {
+			squareCoords = {
+				x_top: [evt.offsetX, evt.offsetY],
+				x_bottom: [evt.offsetX, evt.offsetY],
+				y_top: [evt.offsetX, evt.offsetY],
+				y_bottom: [evt.offsetX, evt.offsetY]
+			};
+			isMarkupMode = true;
+		}
+	};
+
+	const onRemoveItem = (_: KonvaMouseEvent, id: string) => {
+		squares = squares.filter((item) => item.id !== id);
+	};
+
+	onMount(() => {
+		const img = document.createElement('img') as HTMLImageElement;
+		img.src =
+			'https://roblouie.com/wp-content/uploads/2020/04/60788338_304920937106527_8424495022080625603_n.jpg';
+		img.onload = () => {
+			image = img;
+		};
+
+		window.addEventListener('keydown', (e) => {
+			if (e.code === 'Escape') {
+				isMarkupMode = false;
+			} else if (e.code === 'Space') {
+				isWatchMode = !isWatchMode;
+			}
+		});
+	});
+
+	afterUpdate(() => {
+		uuid = crypto.randomUUID();
+	});
+	$: console.log(squareCoords);
 </script>
+
 <section class="markup-page">
-    <header>
-        <h1>Markup page</h1>
-    </header>
-    <main>
-        <div class="canvas-container">
-            <Canvas 
-                width={600}
-                height={600}
-                on:mousemove={followMouse}
-                on:mousedown={onCancelMarkupMode}
-                on:click={onStartMarking}
-            >
-                {#each squares as square}
-                    <Square 
-                        x_top={square.x_top}
-                        x_bottom={square.x_bottom}
-                        y_top={square.y_top}
-                        y_bottom={square.y_bottom}
-                    />
-                {/each}
-                <Square 
-                    x_top={squareCoords.x_top} 
-                    x_bottom={squareCoords.x_bottom}
-                    y_top={squareCoords.y_top} 
-                    y_bottom={squareCoords.y_bottom} 
-                />
-            </Canvas>
-        </div>
-    </main>
+	<header>
+		<h1>Markup page</h1>
+	</header>
+	<main>
+		<div class="canvas-container">
+			<Stage
+				config={{ width: 600, height: 600 }}
+				on:mousemove={onMouseMove}
+				on:click={onStartMarking}
+			>
+				<Layer>
+					<Image config={{ image: image, width: 600, height: 600 }} />
+					{#if isMarkupMode}
+						<Rect
+							config={{
+								x: squareCoords.x_top[0],
+								y: squareCoords.x_top[1],
+								width: squareCoords.y_top[0] - squareCoords.x_top[0],
+								height: squareCoords.y_bottom[1] - squareCoords.x_top[1],
+								stroke: 'black',
+								strokeWidth: 3
+							}}
+						/>
+					{/if}
+					{#each squares as square}
+						<Square
+							rectConfig={{
+								x: square.x_top[0],
+								y: square.x_top[1],
+								width: square.y_top[0] - square.x_top[0],
+								height: square.y_bottom[1] - square.x_top[1],
+								stroke: 'black',
+								strokeWidth: 3
+							}}
+							crossConfig={{
+								points: getPointsUpperRightCorner(square),
+								stroke: 'red',
+								strokeWidth: 4
+							}}
+							crossOnClick={(e) => onRemoveItem(e, square.id)}
+						/>
+					{/each}
+				</Layer>
+			</Stage>
+		</div>
+	</main>
 </section>
 
 <style lang="scss">
-    .markup-page {
-        display: flex;
-        flex-direction: column;
+	.markup-page {
+		display: flex;
+		flex-direction: column;
 
-        align-items: center;
+		align-items: center;
 
-        gap: 20px;
-        margin: 20px;
+		gap: 20px;
+		margin: 20px;
 
-        height: 100%;
+		height: 100%;
 
-        main {
-            .canvas-container {
-                box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
-            }
-        }
-    }
+		main {
+			.canvas-container {
+				box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+			}
+		}
+	}
 </style>
