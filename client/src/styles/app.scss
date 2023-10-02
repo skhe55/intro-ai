@@ -1,5 +1,6 @@
 @use './lib/variables.scss' as *;
 @use './lib/reset.scss' as *;
+@use "./pages/index.scss" as *;
 
 body {
 	width: 100%;

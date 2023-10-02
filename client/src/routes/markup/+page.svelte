@@ -68,7 +68,7 @@
 	afterUpdate(() => {
 		uuid = crypto.randomUUID();
 	});
-	$: console.log(squareCoords);
+	$: console.log(squares);
 </script>
 
 <section class="markup-page">
@@ -96,7 +96,7 @@
 							}}
 						/>
 					{/if}
-					{#each squares as square}
+					{#each squares as square (square.id)}
 						<Square
 							rectConfig={{
 								x: square.x_top[0],

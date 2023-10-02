@@ -1,10 +1,35 @@
 <script lang="ts">
 	import '$styles/app.scss';
+	import { isTokenExpires, navigate } from '$utils';
+	import { afterUpdate } from 'svelte';
+	import { authUser } from '$stores/index';
+	import { Button } from '$lib/ui-components';
+	import { UserIcon } from '$assets/index';
+
+	const onSignOut = () => {
+		authUser.setUser({username: "", token: ""});
+		authUser.setUserInLocalStorage({token: "", expires_at: ""});
+		navigate("sign-in");
+	};
+
+	afterUpdate(() => {
+		if(isTokenExpires(authUser.expiresAt) && window.location.pathname !== "/sign-in") {
+			navigate("sign-in");
+		} 
+	});
 </script>
 
-<nav>
-	<a href="/">Home</a>
-	<a href="/markup">Markup</a>
+<nav class="navbar">
+	<div class="navbar__links-container">
+		<a href="/">Home</a>
+		<a href="/markup">Markup</a>
+	</div>
+	<div class="navbar__user-container">
+		<UserIcon width={32} height={32} />
+		<Button on:click={onSignOut}>
+			Sign Out
+		</Button>
+	</div>
 </nav>
 <main>
 	<slot />
@@ -14,11 +39,10 @@
 	@use '../styles/lib/mixins.scss' as *;
 	@use '../styles/lib/variables.scss' as *;
 
-	nav {
+	.navbar {
 		display: flex;
-		justify-content: center;
+		justify-content: space-between;
 		align-items: center;
-		gap: 20px;
 
 		background: #f6e4db;
 
@@ -27,20 +51,41 @@
 		max-height: 40px;
 		height: 100%;
 
-		a {
-			@include text-large($black);
+		&__links-container {
+			display: flex;
+			justify-content: center;
+			align-items: center;
 
-			text-decoration: none;
+			gap: 25px;
 
-			background: #f6e4db;
+			margin: 0 21px;
+			a {
+				@include text-large($black);
 
-			border-radius: 6px;
-			transition: padding 1s ease-out, background 1s ease-in-out;
+				text-decoration: none;
 
-			&:hover {
-				padding: 8px 16px;
-				background: #a0cbe1;
+				background: #f6e4db;
+
+				border-radius: 6px;
+
+				transition: padding 1s ease-out, background 1s ease-in-out;
+
+				&:hover {
+					padding: 8px 16px;
+					background: $link-hover-background-color;
+				}
 			}
+		}
+
+		&__user-container {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+
+
+			gap: 20px;
+
+			margin: 0 21px;
 		}
 	}
 

@@ -5,3 +5,9 @@
 	font-size: $text-large-size;
 	color: $color;
 }
+
+@mixin text-middle($color, $weight: normal) {
+	font-weight: $weight;
+	font-size: $text-middle-size;
+	color: $color;
+}
