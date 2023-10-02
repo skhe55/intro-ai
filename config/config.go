@@ -10,6 +10,7 @@ type Config struct {
 	PsqlDSN      string `yaml:"psql_dsn"`
 	JwtSecretKey string `yaml:"jwt_secret_key"`
 	Logger       Logger `yaml:"logger"`
+	OriginRemote string `yaml:"origin_remote"`
 }
 
 type Logger struct {

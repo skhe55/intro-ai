@@ -28,14 +28,15 @@ func (u *authService) Register(ctx context.Context, user *models.User) (*models.
 
 	createdUser.SanitizePassword()
 
-	token, err := utils.GenerateJWT(user, u.cfg)
+	token, expiresAt, err := utils.GenerateJWT(user, u.cfg)
 	if err != nil {
 		return nil, err
 	}
 
 	return &models.UserWithToken{
-		UserName: createdUser.UserName,
-		Token:    token,
+		UserName:  createdUser.UserName,
+		Token:     token,
+		ExpiresAt: expiresAt,
 	}, nil
 }
 
@@ -50,14 +51,15 @@ func (u *authService) Login(ctx context.Context, user *models.User) (*models.Use
 		return nil, err
 	}
 
-	token, err := utils.GenerateJWT(user, u.cfg)
+	token, expiresAt, err := utils.GenerateJWT(user, u.cfg)
 	if err != nil {
 		return nil, err
 	}
 
 	return &models.UserWithToken{
-		UserName: loggedUser.UserName,
-		Token:    token,
+		UserName:  loggedUser.UserName,
+		Token:     token,
+		ExpiresAt: expiresAt,
 	}, nil
 }
 

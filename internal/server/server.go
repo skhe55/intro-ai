@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/rs/cors"
 )
 
 type Server struct {
@@ -56,7 +57,24 @@ func (s *Server) Run() error {
 		MaxHeaderBytes: s.MaxHeaderBytes,
 	}
 
-	s.MapHandlers()
+	mux := http.NewServeMux()
+
+	cors := cors.New(cors.Options{
+		AllowedOrigins: []string{s.cfg.OriginRemote},
+		AllowedMethods: []string{
+			http.MethodPost,
+			http.MethodGet,
+			http.MethodPatch,
+			http.MethodDelete,
+			http.MethodPut,
+		},
+		AllowedHeaders:   []string{"*"},
+		AllowCredentials: false,
+	})
+
+	s.MapHandlers(mux)
+
+	server.Handler = cors.Handler(mux)
 
 	go func() {
 		if err := server.ListenAndServe(); err != nil {

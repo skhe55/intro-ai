@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func MapAuthRoutes(prefix string, h auth.Handlers, mw *middleware.MiddlewareManager) {
-	http.HandleFunc(fmt.Sprintf("/%v/register", prefix), h.Register())
-	http.HandleFunc(fmt.Sprintf("/%v/login", prefix), mw.AuthJWTMiddleware()(h.Login()))
+func MapAuthRoutes(prefix string, h auth.Handlers, mw *middleware.MiddlewareManager, mux *http.ServeMux) {
+	mux.HandleFunc(fmt.Sprintf("/%v/register", prefix), h.Register())
+	mux.HandleFunc(fmt.Sprintf("/%v/login", prefix), (h.Login()))
 }
