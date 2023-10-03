@@ -51,7 +51,7 @@ func (u *authService) Login(ctx context.Context, user *models.User) (*models.Use
 		return nil, err
 	}
 
-	token, expiresAt, err := utils.GenerateJWT(user, u.cfg)
+	token, expiresAt, err := utils.GenerateJWT(loggedUser, u.cfg)
 	if err != nil {
 		return nil, err
 	}

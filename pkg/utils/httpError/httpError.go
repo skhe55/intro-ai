@@ -10,11 +10,14 @@ import (
 var (
 	INTERNAL     = "INTERNAL ERROR"
 	NON_INTERNAL = "ERROR"
+	WRONG_DTO    = "CHECK DTO FIELDS"
+	WRONG_ID     = "CHECK PASSED ID"
 )
 
 var (
-	InvalidJWTToken  = errors.New("INVALID JWT TOKEN")
-	InvalidJWTClaims = errors.New("INVALID JWT CLAIMS")
+	InvalidJWTToken     = errors.New("invalid jwt token")
+	InvalidJWTClaims    = errors.New("invalid jwt claims")
+	InvalidJWTSignature = errors.New("invalid token signature")
 )
 
 type HttpError struct {
