@@ -20,22 +20,20 @@ var (
 	InvalidJWTSignature = errors.New("invalid token signature")
 )
 
-type HttpError struct {
-	Writer http.ResponseWriter
+type HttpError struct{}
+
+func NewHttpError() HttpError {
+	return HttpError{}
 }
 
-func NewHttpError(w http.ResponseWriter) *HttpError {
-	return &HttpError{Writer: w}
-}
-
-func (e *HttpError) InternalError() {
-	e.Writer.WriteHeader(http.StatusInternalServerError)
+func (e *HttpError) InternalError(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusInternalServerError)
 	body, _ := json.Marshal(response.Response{Message: INTERNAL, Status: INTERNAL, Result: nil})
-	e.Writer.Write(body)
+	w.Write(body)
 }
 
-func (e *HttpError) NonInternalError(status int, message string) {
-	e.Writer.WriteHeader(status)
+func (e *HttpError) NonInternalError(w http.ResponseWriter, status int, message string) {
+	w.WriteHeader(status)
 	body, _ := json.Marshal(response.Response{Message: message, Status: NON_INTERNAL, Result: nil})
-	e.Writer.Write(body)
+	w.Write(body)
 }

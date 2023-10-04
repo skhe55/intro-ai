@@ -8,7 +8,7 @@ import (
 )
 
 func MapProjectsRoutes(prefix string, h projects.Handlers, mw *middleware.MiddlewareManager, mux *http.ServeMux) {
-	mux.HandleFunc(fmt.Sprintf("/%v/", prefix), mw.AuthJWTMiddleware()(h.GetAllProjects()))
-	mux.HandleFunc(fmt.Sprintf("/%v/create", prefix), mw.AuthJWTMiddleware()(h.CreateProject()))
-	mux.HandleFunc(fmt.Sprintf("/%v/delete/", prefix), mw.AuthJWTMiddleware()(h.DeleteProject()))
+	mux.HandleFunc(fmt.Sprintf("/%v", prefix), mw.Chain(h.GetAllProjects(), mw.Method("GET"), mw.AuthJWTMiddleware()))
+	mux.HandleFunc(fmt.Sprintf("/%v/create", prefix), mw.Chain(h.CreateProject(), mw.Method("POST"), mw.AuthJWTMiddleware()))
+	mux.HandleFunc(fmt.Sprintf("/%v/delete/", prefix), mw.Chain(h.DeleteProject(), mw.Method("DELETE"), mw.AuthJWTMiddleware()))
 }
