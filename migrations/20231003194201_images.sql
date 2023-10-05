@@ -1,9 +1,10 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE datasets (
+CREATE TABLE images (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     project_id UUID NOT NULL,
     filename VARCHAR(512),
+    path_to_image VARCHAR(512),
     coordinates FLOAT[][],
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
@@ -17,5 +18,5 @@ CREATE TABLE datasets (
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE IF EXISTS datasets;
+DROP TABLE IF EXISTS images;
 -- +goose StatementEnd
