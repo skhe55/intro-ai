@@ -84,12 +84,7 @@ func (h *projectsHandlers) CreateProject() http.HandlerFunc {
 			return
 		}
 
-		res, err := utils.ToJSON[response.Response](response.OK(response.StatusOK, nil))
-		if err != nil {
-			h.logger.Error(err)
-			h.httpError.InternalError(w)
-			return
-		}
+		res, _ := utils.ToJSON[response.Response](response.OK(response.StatusOK, nil))
 
 		w.WriteHeader(http.StatusCreated)
 		w.Write(res)
@@ -110,12 +105,7 @@ func (h *projectsHandlers) DeleteProject() http.HandlerFunc {
 			return
 		}
 
-		res, err := utils.ToJSON[response.Response](response.OK(response.StatusOK, nil))
-		if err != nil {
-			h.logger.Error(err)
-			h.httpError.InternalError(w)
-			return
-		}
+		res, _ := utils.ToJSON[response.Response](response.OK(response.StatusOK, nil))
 
 		w.WriteHeader(http.StatusOK)
 		w.Write(res)

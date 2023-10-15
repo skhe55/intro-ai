@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/json"
+	"errors"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -38,4 +39,14 @@ func ParseJSON[T any](src string) (T, error) {
 	}
 
 	return args, nil
+}
+
+func ConvertToValidMimeType(mimeType string) (string, error) {
+	if mimeType == "image/jpeg" {
+		return "jpg", nil
+	} else if mimeType == "image/png" {
+		return "png", nil
+	}
+
+	return "", errors.New("not recognized mime type")
 }

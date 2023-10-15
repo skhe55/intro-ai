@@ -1,6 +1,7 @@
 package http
 
 import (
+	"bytes"
 	"encoding/json"
 	"intro-ai/config"
 	"intro-ai/internal/images"
@@ -10,6 +11,7 @@ import (
 	"intro-ai/pkg/utils"
 	"intro-ai/pkg/utils/httpError"
 	"intro-ai/pkg/utils/httpHelper"
+	"io"
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
@@ -86,12 +88,7 @@ func (h *imagesHandlers) CreateImage() http.HandlerFunc {
 			return
 		}
 
-		res, err := utils.ToJSON[response.Response](response.OK(response.StatusOK, nil))
-		if err != nil {
-			h.logger.Error(err)
-			h.httpError.InternalError(w)
-			return
-		}
+		res, _ := utils.ToJSON[response.Response](response.OK(response.StatusOK, nil))
 
 		w.WriteHeader(http.StatusOK)
 		w.Write(res)
@@ -106,17 +103,69 @@ func (h *imagesHandlers) DeleteImage() http.HandlerFunc {
 			return
 		}
 
-		err := h.imagesService.DeleteImage(r.Context(), imageId)
+		var dto *models.ImageDeleteDto
+		decoder := json.NewDecoder(r.Body)
+		decoder.DisallowUnknownFields()
+		if err := decoder.Decode(&dto); err != nil {
+			h.httpError.NonInternalError(w, http.StatusBadRequest, httpError.WRONG_DTO)
+			return
+		}
+
+		validator := validator.New()
+		if err := validator.Struct(dto); err != nil {
+			h.httpError.NonInternalError(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		err := h.imagesService.DeleteImage(r.Context(), imageId, dto)
 		if err != nil {
 			h.httpError.InternalError(w)
 			return
 		}
 
-		res, err := utils.ToJSON[response.Response](response.OK(response.StatusOK, nil))
-		if err != nil {
-			h.httpError.InternalError(w)
+		res, _ := utils.ToJSON[response.Response](response.OK(response.StatusOK, nil))
+
+		w.WriteHeader(http.StatusOK)
+		w.Write(res)
+	}
+}
+
+func (h *imagesHandlers) UploadImage() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		imageId := httpHelper.RetriveIdFromUrlPath(r.URL.Path)
+		if imageId == "" {
+			h.httpError.NonInternalError(w, http.StatusBadRequest, httpError.WRONG_ID)
 			return
 		}
+
+		readForm, err := r.MultipartReader()
+		if err != nil {
+			h.httpError.NonInternalError(w, http.StatusBadRequest, httpError.WRONG_DTO)
+			return
+		}
+
+		for {
+			part, errPart := readForm.NextPart()
+			if errPart == io.EOF {
+				break
+			}
+			if part.FormName() == "file" {
+				buf := new(bytes.Buffer)
+				buf.ReadFrom(part)
+				mimeType, err := utils.ConvertToValidMimeType(part.Header["Content-Type"][0])
+				if err != nil {
+					h.httpError.NonInternalError(w, http.StatusBadRequest, "Not recognized file extension. Supported extensions: jpg, png.")
+					return
+				}
+				if err := h.imagesService.UploadImage(r.Context(), imageId, buf, mimeType); err != nil {
+					h.httpError.InternalError(w)
+					return
+				}
+				break
+			}
+		}
+
+		res, _ := utils.ToJSON[response.Response](response.OK(response.StatusOK, nil))
 
 		w.WriteHeader(http.StatusOK)
 		w.Write(res)

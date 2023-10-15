@@ -24,3 +24,7 @@ type ImagesDTO struct {
 	Coordinates *[][]sql.NullFloat64 `json:"coordinates" validate:"required"`
 	CreatedAt   time.Time            `json:"created_at" validate:"omitempty"`
 }
+
+type ImageDeleteDto struct {
+	PathToImage string `json:"pathToImage" validate:"required"`
+}

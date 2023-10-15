@@ -69,6 +69,25 @@ func (r *imagesRepository) CreateImage(ctx context.Context, image *models.Images
 	return nil
 }
 
+func (r *imagesRepository) UploadImage(ctx context.Context, imageId string, pathToImage string) error {
+	conn, err := r.db.Connx(ctx)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	if _, err := conn.ExecContext(
+		ctx,
+		"UPDATE images SET path_to_image = $1 WHERE id = $2",
+		pathToImage,
+		imageId,
+	); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *imagesRepository) DeleteImage(ctx context.Context, imageId string) error {
 	conn, err := r.db.Connx(ctx)
 	if err != nil {
@@ -78,7 +97,8 @@ func (r *imagesRepository) DeleteImage(ctx context.Context, imageId string) erro
 
 	if _, err := conn.ExecContext(
 		ctx,
-		"UPDATE images SET deleted_at = $1::timestamp WHERE id = $1",
+		"UPDATE images SET deleted_at = $1::timestamp, path_to_image = '' WHERE id = $2",
+		time.Now().Format(time.RFC3339),
 		imageId,
 	); err != nil {
 		return err

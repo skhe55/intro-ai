@@ -7,10 +7,13 @@ import (
 )
 
 type Config struct {
-	PsqlDSN      string `yaml:"psql_dsn"`
-	JwtSecretKey string `yaml:"jwt_secret_key"`
-	Logger       Logger `yaml:"logger"`
-	OriginRemote string `yaml:"origin_remote"`
+	PsqlDSN             string `yaml:"psql_dsn"`
+	JwtSecretKey        string `yaml:"jwt_secret_key"`
+	Logger              Logger `yaml:"logger"`
+	OriginRemote        string `yaml:"origin_remote"`
+	FtpConnectionString string `yaml:"ftp_connection_string"`
+	FtpUserLogin        string `yaml:"ftp_user_login"`
+	FtpUserPassword     string `yaml:"ftp_user_password"`
 }
 
 type Logger struct {
