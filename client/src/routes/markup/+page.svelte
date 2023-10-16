@@ -6,6 +6,7 @@
 	import { initialSquareCoordinates } from '$constants/index';
 	import Square from '$lib/shapes/square.svelte';
 	import { getPointsUpperRightCorner } from '$lib/utils';
+	import { Button } from '$lib/ui-components';
 
 	let uuid = crypto.randomUUID();
 
@@ -14,7 +15,13 @@
 
 	let isMarkupMode: boolean = false;
 	let isWatchMode: boolean = false;
+	let isEditMode: boolean = false;
+
 	let image: HTMLOrSVGImageElement;
+
+	const onToggleMode = () => {
+		isEditMode = !isEditMode;
+	};
 
 	const onMouseMove = (e: KonvaMouseEvent) => {
 		const { evt } = e.detail;
@@ -59,7 +66,7 @@
 		window.addEventListener('keydown', (e) => {
 			if (e.code === 'Escape') {
 				isMarkupMode = false;
-			} else if (e.code === 'Space') {
+			} else if (e.code === 'KeyN') {
 				isWatchMode = !isWatchMode;
 			}
 		});
@@ -72,10 +79,15 @@
 </script>
 
 <section class="markup-page">
-	<header>
-		<h1>Markup page</h1>
-	</header>
-	<main>
+	<div class="markup-view-container">
+		<div class="markup-controls">
+			<div class="markup-controls__buttons">
+				<Button>Save</Button>
+				<Button>Create a project</Button>
+				<Button on:click={onToggleMode}>{isEditMode ? "Disable edit" : "Enable edit"}</Button>
+			</div>
+			<h3>Current mode: {isWatchMode ? "Watch" : "Markup"}</h3>
+		</div>
 		<div class="canvas-container">
 			<Stage
 				config={{ width: 600, height: 600 }}
@@ -112,30 +124,68 @@
 								strokeWidth: 4
 							}}
 							crossOnClick={(e) => onRemoveItem(e, square.id)}
+							isShowCross={isEditMode}
 						/>
 					{/each}
 				</Layer>
 			</Stage>
 		</div>
-	</main>
+		<div class="markup-view-tips">
+			<h2>How to use it</h2>
+			<p>First, we need upload a image that we will mark up.</p>
+			<p>Then left-click on image and start mark up.</p>
+			<p>After we finished markup, we need saved our results.</p>
+		</div>
+	</div>
+	<div class="markup-storage">
+		
+	</div>
 </section>
 
 <style lang="scss">
 	.markup-page {
 		display: flex;
-		flex-direction: column;
-
-		align-items: center;
 
 		gap: 20px;
+
 		margin: 20px;
 
-		height: 100%;
+		height: 95%;
 
-		main {
+		.markup-view-container {
+			display: flex;
+			flex-direction: column;
+			align-items: flex-start;
+
+			gap: 20px;
+
+			.markup-controls {
+				display: flex;
+
+				justify-content: space-between;
+				align-items: center;
+
+				width: 100%;
+				gap: 12px;
+
+				&__buttons {
+					display: flex;
+
+					gap: 16px;
+				}
+			}
+
 			.canvas-container {
 				box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
 			}
+		}
+
+		.markup-storage {
+			border-radius: 6px;
+
+			width: 100%;
+
+			box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
 		}
 	}
 </style>

@@ -36,5 +36,9 @@
         &:hover {
             background-color: $link-hover-background-color;
         }
+
+        &:focus-within {
+            outline: none;
+        }
     }
 </style>

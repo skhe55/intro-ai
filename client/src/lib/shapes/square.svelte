@@ -6,10 +6,13 @@
 
 	export let rectConfig: RectConfig,
 		crossConfig: LineConfig,
-		crossOnClick: (e: KonvaMouseEvent) => void;
+		crossOnClick: (e: KonvaMouseEvent) => void,
+		isShowCross: boolean;
 </script>
 
 <Group>
 	<Rect config={rectConfig} />
-	<Cross config={crossConfig} on:click={crossOnClick} />
+	{#if isShowCross}
+		<Cross config={crossConfig} on:click={crossOnClick} />
+	{/if}
 </Group>

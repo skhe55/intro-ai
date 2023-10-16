@@ -33,7 +33,6 @@
 
 <section class="sign-in-page">
     <form class="container">
-        <h2>Sign-in</h2>
         <Input bind:value={login} />
         <Input bind:value={password} /> 
         <div class="container__buttons">
