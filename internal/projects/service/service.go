@@ -26,7 +26,7 @@ func NewProjectsService(
 	}
 }
 
-func (s *projectsService) GetAllProjects(ctx context.Context) ([]models.Projects, error) {
+func (s *projectsService) GetAllProjects(ctx context.Context) ([]models.ProjectsWithImages, error) {
 	projects, err := s.projectsRepository.GetAllProjects(ctx)
 
 	if err != nil {
@@ -37,7 +37,7 @@ func (s *projectsService) GetAllProjects(ctx context.Context) ([]models.Projects
 	return projects, nil
 }
 
-func (s *projectsService) CreateProject(ctx context.Context, project *models.Projects, userId uint64) error {
+func (s *projectsService) CreateProject(ctx context.Context, project *models.ProjectsDto, userId uint64) error {
 	err := s.projectsRepository.CreateProject(ctx, project, userId)
 	if err != nil {
 		s.logger.Error(err)

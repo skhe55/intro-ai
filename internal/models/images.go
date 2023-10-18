@@ -17,12 +17,12 @@ type Images struct {
 }
 
 type ImagesDTO struct {
-	ID          string               `json:"id" validate:"omitempty"`
-	ProjectId   string               `json:"projectId" validate:"required"`
-	FileName    string               `json:"filename" validate:"required"`
-	PathToImage string               `json:"pathToImage" validate:"required"`
-	Coordinates *[][]sql.NullFloat64 `json:"coordinates" validate:"required"`
-	CreatedAt   time.Time            `json:"created_at" validate:"omitempty"`
+	ID          string               `json:"id" validate:"omitempty" db:"id"`
+	ProjectId   string               `json:"projectId" validate:"required" db:"project_id"`
+	FileName    string               `json:"filename" validate:"required" db:"filename"`
+	PathToImage string               `json:"pathToImage" validate:"required" db:"path_to_image"`
+	Coordinates *[][]sql.NullFloat64 `json:"coordinates" validate:"required" db:"coordinates"`
+	CreatedAt   time.Time            `json:"created_at" validate:"omitempty" db:"created_at"`
 }
 
 type ImageDeleteDto struct {

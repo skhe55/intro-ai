@@ -13,3 +13,13 @@ type Projects struct {
 	UpdatedAt sql.NullTime `json:"updated_at" db:"updated_at" validate:"omitempty"`
 	DeletedAt sql.NullTime `json:"deleted_at" db:"deleted_at" validate:"omitempty"`
 }
+
+type ProjectsDto struct {
+	Name string `json:"name" db:"name" validate:"required"`
+}
+
+type ProjectsWithImages struct {
+	ID     string      `json:"id" db:"id"`
+	Name   string      `json:"name" db:"name"`
+	Images []ImagesDTO `json:"images"`
+}

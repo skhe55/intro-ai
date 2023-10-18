@@ -57,7 +57,7 @@ func (h *projectsHandlers) GetAllProjects() http.HandlerFunc {
 
 func (h *projectsHandlers) CreateProject() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var project *models.Projects
+		var project *models.ProjectsDto
 		decoder := json.NewDecoder(r.Body)
 		decoder.DisallowUnknownFields()
 		err := decoder.Decode(&project)
