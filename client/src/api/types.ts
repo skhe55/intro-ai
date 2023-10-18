@@ -16,3 +16,16 @@ export type TSignInUpResponse = {
 };
 
 export type TSignUpPayload = TSignInPayload & { username?: string };
+
+// Projects
+
+export type TProject = {
+    id: string;
+    name: string;
+    created_at: Date;
+    updated_at: Date;
+};
+
+export type TProjectDto = {
+    name: string;
+};

@@ -6,7 +6,11 @@
 	import { initialSquareCoordinates } from '$constants/index';
 	import Square from '$lib/shapes/square.svelte';
 	import { getPointsUpperRightCorner } from '$lib/utils';
-	import { Button } from '$lib/ui-components';
+	import { Button, Modal, Input } from '$lib/ui-components';
+	import { ProjectApi } from '$api/index';
+	import { View } from './components';
+
+	let projectApi = new ProjectApi();
 
 	let uuid = crypto.randomUUID();
 
@@ -17,10 +21,31 @@
 	let isWatchMode: boolean = false;
 	let isEditMode: boolean = false;
 
+	let isShowCreateProjectModal: boolean = false;
+	let nameOfCreatedProject: string = '';
+
 	let image: HTMLOrSVGImageElement;
 
 	const onToggleMode = () => {
 		isEditMode = !isEditMode;
+	};
+
+	const onShowCreateProjectModal = () => {
+		isShowCreateProjectModal = true;
+	};
+
+	const onCancelCreateProjectModal = () => {
+		isShowCreateProjectModal = false;
+		nameOfCreatedProject = '';
+	};
+
+	const onCreateProject = () => {
+		(async () => {
+			const response = await projectApi.createProject({name: nameOfCreatedProject});
+			if(response) {
+				onCancelCreateProjectModal();
+			}
+		})();
 	};
 
 	const onMouseMove = (e: KonvaMouseEvent) => {
@@ -78,12 +103,33 @@
 	$: console.log(squares);
 </script>
 
+{#if isShowCreateProjectModal}
+	<Modal>
+		<div class="modal-create-project">
+			<header class="modal-create-project-header">
+				<h2>Create a project</h2>
+			</header>
+			<div class="modal-create-project__body">
+				<div class="modal-create-project__inputs-container">
+					<span class="label">Name</span>
+					<Input className={"modal__inputs"} bind:value={nameOfCreatedProject} />
+				</div>
+			</div>
+			<footer class="modal-create-project-footer">
+				<div class="modal__buttons">
+					<Button on:click={onCreateProject}>Approve</Button>
+					<Button on:click={onCancelCreateProjectModal}>Cancel</Button>
+				</div>
+			</footer>
+		</div>
+	</Modal>
+{/if}
 <section class="markup-page">
 	<div class="markup-view-container">
 		<div class="markup-controls">
 			<div class="markup-controls__buttons">
 				<Button>Save</Button>
-				<Button>Create a project</Button>
+				<Button on:click={onShowCreateProjectModal}>Create a project</Button>
 				<Button on:click={onToggleMode}>{isEditMode ? "Disable edit" : "Enable edit"}</Button>
 			</div>
 			<h3>Current mode: {isWatchMode ? "Watch" : "Markup"}</h3>
@@ -138,11 +184,14 @@
 		</div>
 	</div>
 	<div class="markup-storage">
-		
+		<View />
 	</div>
 </section>
 
 <style lang="scss">
+	@use '../../styles/lib/mixins.scss' as *;
+	@use '../../styles/lib/variables.scss' as *;
+
 	.markup-page {
 		display: flex;
 
@@ -186,6 +235,45 @@
 			width: 100%;
 
 			box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+
+			overflow: auto;
+		}
+	}
+	
+	.modal-create-project {
+		display: flex;
+		flex-direction: column;
+
+		align-items: center;
+		justify-content: space-between;
+
+		min-width: 400px;
+		height: 200px;
+
+		padding: 16px 0px;
+
+		background-color: $white;
+
+		border-radius: 6px;
+
+		&__body {
+			display: flex;
+			flex-direction: column;
+
+			gap: 16px;
+
+			align-items: center;
+			justify-content: center;
+		}
+
+		&__inputs-container {
+			display: flex;
+			flex-direction: column;
+
+			.label {
+				font-weight: 600;
+				font-size: $text-large-size;
+			}
 		}
 	}
 </style>

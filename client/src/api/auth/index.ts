@@ -1,4 +1,4 @@
-import { DEFAULT_API_PATH, JSON_BODY_HEADERS } from "$constants/index";
+import { DEFAULT_API_PATH } from "$constants/index";
 import type { TSignInPayload, TSignInUpResponse, TSignUpPayload, TStandartApiResponse } from "$api/types";
 
 export class AuthApi {
@@ -6,7 +6,9 @@ export class AuthApi {
         try {
             const response = await fetch(`${DEFAULT_API_PATH}/auth/login`, {
                 method: "POST",
-                ...JSON_BODY_HEADERS,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
                 body: JSON.stringify(payload),
             });
             if(response.ok) {
@@ -24,7 +26,9 @@ export class AuthApi {
         try {
             const response = await fetch(`${DEFAULT_API_PATH}/auth/register`, {
                 method: "POST",
-                ...JSON_BODY_HEADERS,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
                 body: JSON.stringify(payload),
             });
             if(response.ok) {
