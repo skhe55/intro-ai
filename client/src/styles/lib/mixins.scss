@@ -1,13 +1,19 @@
 @use './variables.scss' as *;
 
-@mixin text-large($color, $weight: bold) {
+@mixin text-large($color: $black, $weight: bold) {
 	font-weight: $weight;
 	font-size: $text-large-size;
 	color: $color;
 }
 
-@mixin text-middle($color, $weight: normal) {
+@mixin text-middle($color: $black, $weight: normal) {
 	font-weight: $weight;
 	font-size: $text-middle-size;
+	color: $color;
+}
+
+@mixin text-primary($color: $black, $weight: normal) {
+	font-weight: $weight;
+	font-size: $text-primary-size;
 	color: $color;
 }

@@ -22,10 +22,26 @@ export type TSignUpPayload = TSignInPayload & { username?: string };
 export type TProject = {
     id: string;
     name: string;
-    created_at: Date;
-    updated_at: Date;
+    images: TImage[] | null;
 };
 
 export type TProjectDto = {
     name: string;
+};
+
+// Images
+
+export type TImage = {
+    id: string;
+    filename: string;
+    pathToImage: string;
+    projectId: string;
+    coordinates: number[][] | null;
+    created_at: Date;
+};
+
+export type TImageDto = {
+    filename: string;
+    projectId: string;
+    coordinates: number[][];
 };

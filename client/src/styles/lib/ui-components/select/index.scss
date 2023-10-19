@@ -1,0 +1,14 @@
+@use "../../variables.scss" as *;
+
+.select {
+    width: 100%;
+
+    padding: 12px 16px;
+
+    border: 1px solid $link-hover-background-color;
+    border-radius: 6px;
+
+    &:focus-visible {
+        outline: none;
+    }
+}

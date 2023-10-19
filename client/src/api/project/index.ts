@@ -1,10 +1,14 @@
-import { HEADERS_WITH_BEARER_TOKEN, DEFAULT_API_PATH } from "$constants/index";
+import { DEFAULT_API_PATH } from "$constants/index";
 import type { TProject, TProjectDto, TStandartApiResponse } from "$api/types";
 
 export class ProjectApi {
     getProjects = async (): Promise<TStandartApiResponse<TProject[]> | null> => {
         try {
-            const response = await fetch(`${DEFAULT_API_PATH}/projects`, HEADERS_WITH_BEARER_TOKEN(window.localStorage.getItem('token') as string));
+            const response = await fetch(`${DEFAULT_API_PATH}/projects`, {
+                headers: {
+                    'Authorization': `Bearer ${window.localStorage.getItem('token') as string}`,
+                },
+            });
             if(response.ok) {
                 return response.json();
             } else {
@@ -20,7 +24,10 @@ export class ProjectApi {
         try {
             const response = await fetch(`${DEFAULT_API_PATH}/projects/create`, {
                 method: "POST",
-                ...HEADERS_WITH_BEARER_TOKEN(window.localStorage.getItem('token') as string, true),
+                headers: {
+                    'Authorization': `Bearer ${window.localStorage.getItem('token') as string}`,
+                    'Content-Type': 'application/json'
+                },
                 body: JSON.stringify(payload),
             });
             if(response.ok) {

@@ -3,13 +3,15 @@
     import { Stage, Layer, Rect, Image, type KonvaMouseEvent } from 'svelte-konva';
 
 	import type { TSquare } from '$lib/types';
+	import type { TImageDto, TProject } from "$api/types";
 	import { initialSquareCoordinates } from '$constants/index';
 	import Square from '$lib/shapes/square.svelte';
 	import { getPointsUpperRightCorner } from '$lib/utils';
-	import { Button, Modal, Input } from '$lib/ui-components';
+	import { Button, Modal, Input, Select } from '$lib/ui-components';
 	import { ProjectApi } from '$api/index';
 	import { View } from './components';
 
+    let projects: TProject[] = [];
 	let projectApi = new ProjectApi();
 
 	let uuid = crypto.randomUUID();
@@ -22,7 +24,14 @@
 	let isEditMode: boolean = false;
 
 	let isShowCreateProjectModal: boolean = false;
+	let isShowCreateLabeledImage: boolean = false;
+
 	let nameOfCreatedProject: string = '';
+	let saveImageDto: TImageDto = {
+		filename: '',
+		projectId: '',
+		coordinates: [[]]
+	}
 
 	let image: HTMLOrSVGImageElement;
 
@@ -34,9 +43,17 @@
 		isShowCreateProjectModal = true;
 	};
 
+	const onShowCreateImageLabeled = () => {
+		isShowCreateLabeledImage = true;
+	};
+
 	const onCancelCreateProjectModal = () => {
 		isShowCreateProjectModal = false;
 		nameOfCreatedProject = '';
+	};
+
+	const onCancelCreateImageLabeledModal = () => {
+		isShowCreateLabeledImage = false;
 	};
 
 	const onCreateProject = () => {
@@ -45,6 +62,12 @@
 			if(response) {
 				onCancelCreateProjectModal();
 			}
+		})();
+	};
+
+	const onSaveImage = () => {
+		(async () => {
+			const response = await projectApi
 		})();
 	};
 
@@ -95,40 +118,78 @@
 				isWatchMode = !isWatchMode;
 			}
 		});
+
+		(async () => {
+            const response = await projectApi.getProjects();
+            if(response) {
+                projects = [...projects, ...response.Result]
+            }
+        })();
 	});
 
 	afterUpdate(() => {
 		uuid = crypto.randomUUID();
 	});
-	$: console.log(squares);
 </script>
 
 {#if isShowCreateProjectModal}
-	<Modal>
-		<div class="modal-create-project">
-			<header class="modal-create-project-header">
-				<h2>Create a project</h2>
-			</header>
-			<div class="modal-create-project__body">
-				<div class="modal-create-project__inputs-container">
-					<span class="label">Name</span>
-					<Input className={"modal__inputs"} bind:value={nameOfCreatedProject} />
-				</div>
+	<Modal 
+		header={"Create a project"}
+		buttons={[
+			{
+				id: crypto.randomUUID(),
+				text: "Submit",
+				onClick: onCreateProject,
+			},
+			{
+				id: crypto.randomUUID(),
+				text: "Cancel",
+				onClick: onCancelCreateProjectModal,
+			}
+		]}
+	>
+		<span class="label">Name</span>
+		<Input bind:value={nameOfCreatedProject} />
+	</Modal>
+{/if}
+{#if isShowCreateLabeledImage}
+	<Modal
+		header={"Save image"}
+		buttons={[
+			{
+				id: crypto.randomUUID(),
+				text: "Submit",
+				onClick: onCreateProject,
+			},
+			{
+				id: crypto.randomUUID(),
+				text: "Cancel",
+				onClick: onCancelCreateImageLabeledModal,
+			}
+		]}
+	>
+		<div class="modal-content">
+			<div class="modal-content__item">
+				<span class="label">Name</span>
+				<Input bind:value={nameOfCreatedProject} />
 			</div>
-			<footer class="modal-create-project-footer">
-				<div class="modal__buttons">
-					<Button on:click={onCreateProject}>Approve</Button>
-					<Button on:click={onCancelCreateProjectModal}>Cancel</Button>
-				</div>
-			</footer>
+			<div class="modal-content__item">
+				<span class="label">Project</span>
+				<Select 
+					data={projects}
+					textField={"name"}
+					valueField={"id"}
+				/>
+			</div>
 		</div>
 	</Modal>
 {/if}
+
 <section class="markup-page">
 	<div class="markup-view-container">
 		<div class="markup-controls">
 			<div class="markup-controls__buttons">
-				<Button>Save</Button>
+				<Button on:click={onShowCreateImageLabeled} disabled={!squares.length}>Save</Button>
 				<Button on:click={onShowCreateProjectModal}>Create a project</Button>
 				<Button on:click={onToggleMode}>{isEditMode ? "Disable edit" : "Enable edit"}</Button>
 			</div>
@@ -184,7 +245,7 @@
 		</div>
 	</div>
 	<div class="markup-storage">
-		<View />
+		<View projects={projects} />
 	</div>
 </section>
 
@@ -237,43 +298,36 @@
 			box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
 
 			overflow: auto;
+
+			&::-webkit-scrollbar {
+                display: block;
+            }
+            
+            &::-webkit-scrollbar {
+                width: 7px;
+                height: 56px;
+            }
+            &::-webkit-scrollbar-track {
+                width: 12px;
+            }
+
+            &::-webkit-scrollbar-thumb {
+                border: 3px solid $third-background-color;
+                background: $third-background-color;
+                border-radius: 6px;
+            }
 		}
 	}
-	
-	.modal-create-project {
+
+	.modal-content {
 		display: flex;
 		flex-direction: column;
+		
+		gap: 10px;
 
-		align-items: center;
-		justify-content: space-between;
-
-		min-width: 400px;
-		height: 200px;
-
-		padding: 16px 0px;
-
-		background-color: $white;
-
-		border-radius: 6px;
-
-		&__body {
+		&__item {
 			display: flex;
 			flex-direction: column;
-
-			gap: 16px;
-
-			align-items: center;
-			justify-content: center;
-		}
-
-		&__inputs-container {
-			display: flex;
-			flex-direction: column;
-
-			.label {
-				font-weight: 600;
-				font-size: $text-large-size;
-			}
 		}
 	}
 </style>
