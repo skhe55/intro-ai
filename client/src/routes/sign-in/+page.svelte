@@ -14,7 +14,7 @@
             if(response !== null) {
                 authUser.setUser(response.Result); 
                 authUser.setUserInLocalStorage(response.Result);
-                navigate("");
+                navigate("markup");
             }
         })();
     };
@@ -25,7 +25,7 @@
             if(response !== null) {
                 authUser.setUser(response.Result); 
                 authUser.setUserInLocalStorage(response.Result);
-                navigate("");
+                navigate("markup");
             }
         })();
     };
