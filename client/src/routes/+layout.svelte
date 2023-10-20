@@ -4,7 +4,6 @@
 	import { afterUpdate } from 'svelte';
 	import { authUser } from '$stores/index';
 	import { Button } from '$lib/ui-components';
-	import { UserIcon } from '$assets/index';
 
 	const onSignOut = () => {
 		authUser.setUser({username: "", token: ""});
@@ -21,11 +20,9 @@
 
 <nav class="navbar">
 	<div class="navbar__links-container">
-		<a href="/">Home</a>
 		<a href="/markup">Markup</a>
 	</div>
 	<div class="navbar__user-container">
-		<UserIcon width={32} height={32} />
 		<Button on:click={onSignOut}>
 			Sign Out
 		</Button>
