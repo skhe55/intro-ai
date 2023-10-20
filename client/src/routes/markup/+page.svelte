@@ -67,7 +67,7 @@
 
 	const onSaveImage = () => {
 		(async () => {
-			const response = await projectApi
+			// const response = await projectApi
 		})();
 	};
 

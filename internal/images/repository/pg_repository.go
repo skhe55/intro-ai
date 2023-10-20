@@ -57,9 +57,10 @@ func (r *imagesRepository) CreateImage(ctx context.Context, image *models.Images
 
 	if _, err := conn.ExecContext(
 		ctx,
-		"INSERT INTO images (project_id, filename, created_at, updated_at) VALUES ($1, $2, $3, $4)",
+		"INSERT INTO images (project_id, filename, coordinates, created_at, updated_at) VALUES ($1, $2, $3, $4, $5)",
 		image.ProjectId,
 		image.FileName,
+		image.Coordinates,
 		time.Now().UTC().Format(time.RFC3339),
 		time.Now().UTC().Format(time.RFC3339),
 	); err != nil {
