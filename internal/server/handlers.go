@@ -1,6 +1,9 @@
 package server
 
 import (
+	annotationsHttp "intro-ai/internal/annotations/delivery/http"
+	annotationsRepository "intro-ai/internal/annotations/repository"
+	annotationsService "intro-ai/internal/annotations/service"
 	authHttp "intro-ai/internal/auth/delivery/http"
 	authRepository "intro-ai/internal/auth/repository"
 	authService "intro-ai/internal/auth/service"
@@ -24,11 +27,13 @@ func (s *Server) MapHandlers(mux *http.ServeMux) error {
 	projectsRepository := projectsRepository.NewProjectsRepository(s.db)
 	imagesRepository := imagesRepository.NewImagesRepository(s.db)
 	labelsRepository := labelsRepository.NewLabelsRepository(s.db)
+	annotationsRepository := annotationsRepository.NewAnnotationsRepository(s.db)
 
 	authService := authService.NewAuthService(s.cfg, s.logger, authRepository)
 	projectsService := projectsService.NewProjectsService(s.cfg, s.logger, projectsRepository)
 	imagesService := imagesService.NewImagesService(s.cfg, s.logger, imagesRepository)
 	labelsService := labelsService.NewLabelsService(s.cfg, s.logger, labelsRepository)
+	annotationsService := annotationsService.NewAnnotationsService(s.cfg, s.logger, annotationsRepository)
 
 	myHttpError := httpError.NewHttpError()
 	mw := middleware.NewMiddlewareManager(s.cfg, s.logger, myHttpError, authService)
@@ -37,10 +42,12 @@ func (s *Server) MapHandlers(mux *http.ServeMux) error {
 	projectsHandlers := projectsHttp.NewProjectsHandlers(s.cfg, s.logger, myHttpError, projectsService)
 	imagesHandlers := imagesHttp.NewImagesHandlers(s.cfg, s.logger, myHttpError, imagesService)
 	labelsHandlers := labelsHttp.NewLabelsHandlers(s.cfg, s.logger, myHttpError, labelsService)
+	annotationsHandlers := annotationsHttp.NewAnnotationsHandlers(s.cfg, s.logger, myHttpError, annotationsService)
 
 	authHttp.MapAuthRoutes("auth", authHandlers, mw, mux)
 	projectsHttp.MapProjectsRoutes("projects", projectsHandlers, mw, mux)
 	imagesHttp.MapImagesRoutes("images", imagesHandlers, mw, mux)
 	labelsHttp.MapLabelsRoutes("labels", labelsHandlers, mw, mux)
+	annotationsHttp.MapAnnotationsRoutes("annotations", annotationsHandlers, mw, mux)
 	return nil
 }

@@ -3,6 +3,8 @@ package utils
 import (
 	"encoding/json"
 	"errors"
+	"strconv"
+	"strings"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -49,4 +51,23 @@ func ConvertToValidMimeType(mimeType string) (string, error) {
 	}
 
 	return "", errors.New("not recognized mime type")
+}
+
+func ConvertStringToFloat64SliceOfSlices(v string) [][]float64 {
+	var result [][]float64
+	v = strings.Trim(v, "{}")
+	pairs := strings.Split(v, "},{")
+
+	for _, pair := range pairs {
+		pair = strings.Trim(pair, "{}")
+		nums := strings.Split(pair, ",")
+		var subResult []float64
+		for _, num := range nums {
+			f, _ := strconv.ParseFloat(num, 64)
+			subResult = append(subResult, f)
+		}
+		result = append(result, subResult)
+	}
+
+	return result
 }

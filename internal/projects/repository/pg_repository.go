@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"intro-ai/internal/models"
 	"intro-ai/internal/projects"
@@ -49,14 +48,10 @@ func (r *projectsRepository) GetAllProjects(ctx context.Context) ([]models.Proje
 			if v[0] != nil {
 				images = utils.Map[interface{}, models.ImagesDTO](v, func(mapItem interface{}, _ int) models.ImagesDTO {
 					var pathToImage string
-					var coordinates *[][]sql.NullFloat64
 					var createdAt, _ = time.Parse(time.RFC3339, mapItem.(map[string]interface{})["created_at"].(string))
 
 					if mapItem.(map[string]interface{})["path_to_image"] != nil {
 						pathToImage = mapItem.(map[string]interface{})["path_to_image"].(string)
-					}
-					if mapItem.(map[string]interface{})["coordinates"] != nil {
-						coordinates = mapItem.(map[string]interface{})["coordinates"].(*[][]sql.NullFloat64)
 					}
 
 					return models.ImagesDTO{
@@ -64,7 +59,6 @@ func (r *projectsRepository) GetAllProjects(ctx context.Context) ([]models.Proje
 						ProjectId:   mapItem.(map[string]interface{})["project_id"].(string),
 						FileName:    mapItem.(map[string]interface{})["filename"].(string),
 						PathToImage: pathToImage,
-						Coordinates: coordinates,
 						CreatedAt:   createdAt}
 				})
 			}
