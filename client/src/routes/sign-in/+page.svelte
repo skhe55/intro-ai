@@ -1,8 +1,8 @@
 <script lang="ts">
     import { AuthApi } from '$api/index';
-	import { Button, Input } from '$lib/ui-components';
     import { authUser } from '$stores/index';
 	import { navigate } from '$utils';
+    import { Input, Label, Button } from 'flowbite-svelte';
 
     const authApi = new AuthApi();
     let login: string;
@@ -14,7 +14,7 @@
             if(response !== null) {
                 authUser.setUser(response.Result); 
                 authUser.setUserInLocalStorage(response.Result);
-                navigate("markup");
+                navigate("root");
             }
         })();
     };
@@ -25,7 +25,7 @@
             if(response !== null) {
                 authUser.setUser(response.Result); 
                 authUser.setUserInLocalStorage(response.Result);
-                navigate("markup");
+                navigate("root");
             }
         })();
     };
@@ -37,13 +37,13 @@
         <Input bind:value={password} /> 
         <div class="container__buttons">
             <Button 
-                type={"submit"}
+                color="alternative"
                 on:click={onSignIn}
             >
                 Sign in
             </Button>
             <Button 
-                type={"submit"}
+                color="alternative"
                 on:click={onSignUp}
             >
                 Sign up

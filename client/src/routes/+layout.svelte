@@ -1,31 +1,30 @@
 <script lang="ts">
+	import '../app.postcss';
 	import '$styles/app.scss';
 	import { isTokenExpires, navigate } from '$utils';
 	import { afterUpdate } from 'svelte';
 	import { authUser } from '$stores/index';
-	import { Button } from '$lib/ui-components';
+	import { GradientButton } from 'flowbite-svelte';
 
 	const onSignOut = () => {
-		authUser.setUser({username: "", token: ""});
-		authUser.setUserInLocalStorage({token: "", expires_at: ""});
-		navigate("sign-in");
+		authUser.setUser({ username: '', token: '' });
+		authUser.setUserInLocalStorage({ token: '', expires_at: '' });
+		navigate('sign-in');
 	};
 
 	afterUpdate(() => {
-		if(isTokenExpires(authUser.expiresAt) && window.location.pathname !== "/sign-in") {
-			navigate("sign-in");
-		} 
+		if (isTokenExpires(authUser.expiresAt) && window.location.pathname !== '/sign-in') {
+			navigate('sign-in');
+		}
 	});
 </script>
 
 <nav class="navbar">
 	<div class="navbar__links-container">
-		<a href="/markup">Markup</a>
+		<a href="/root">Homepage</a>
 	</div>
 	<div class="navbar__user-container">
-		<Button on:click={onSignOut}>
-			Sign Out
-		</Button>
+		<GradientButton color="tealToLime" on:click={onSignOut}>Sign Out</GradientButton>
 	</div>
 </nav>
 <main>
@@ -43,7 +42,7 @@
 
 		background: #f6e4db;
 
-		padding: 10px 0;
+		padding: 32px 0;
 
 		max-height: 40px;
 		height: 100%;
@@ -78,7 +77,6 @@
 			display: flex;
 			justify-content: center;
 			align-items: center;
-
 
 			gap: 20px;
 

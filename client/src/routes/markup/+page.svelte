@@ -1,13 +1,14 @@
-<script lang="ts">
+<!-- <script lang="ts">
 	import { afterUpdate, onMount } from 'svelte';
     import { Stage, Layer, Rect, Image, type KonvaMouseEvent } from 'svelte-konva';
+	import { Alert, Modal, Button  } from 'flowbite-svelte';
 
 	import type { TSquare } from '$lib/types';
 	import type { TImageDto, TProject } from "$api/types";
 	import { initialSquareCoordinates } from '$constants/index';
 	import Square from '$lib/shapes/square.svelte';
 	import { getPointsUpperRightCorner } from '$lib/utils';
-	import { Button, Modal, Input, Select } from '$lib/ui-components';
+	import { Input, Select } from '$lib/ui-components';
 	import { ProjectApi } from '$api/index';
 	import { View } from './components';
 
@@ -130,9 +131,9 @@
 	afterUpdate(() => {
 		uuid = crypto.randomUUID();
 	});
-</script>
+</script> -->
 
-{#if isShowCreateProjectModal}
+<!-- {#if isShowCreateProjectModal}
 	<Modal 
 		header={"Create a project"}
 		buttons={[
@@ -183,9 +184,9 @@
 			</div>
 		</div>
 	</Modal>
-{/if}
+{/if} -->
 
-<section class="markup-page">
+<!-- <section class="markup-page">
 	<div class="markup-view-container">
 		<div class="markup-controls">
 			<div class="markup-controls__buttons">
@@ -269,22 +270,6 @@
 
 			gap: 20px;
 
-			.markup-controls {
-				display: flex;
-
-				justify-content: space-between;
-				align-items: center;
-
-				width: 100%;
-				gap: 12px;
-
-				&__buttons {
-					display: flex;
-
-					gap: 16px;
-				}
-			}
-
 			.canvas-container {
 				box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
 			}
@@ -318,16 +303,4 @@
             }
 		}
 	}
-
-	.modal-content {
-		display: flex;
-		flex-direction: column;
-		
-		gap: 10px;
-
-		&__item {
-			display: flex;
-			flex-direction: column;
-		}
-	}
-</style>
+</style> -->

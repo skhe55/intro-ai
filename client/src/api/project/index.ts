@@ -45,6 +45,9 @@ export class ProjectApi {
         try {
             const response = await fetch(`${DEFAULT_API_PATH}/projects/delete/${id}`, {
                 method: "DELETE",
+                headers: {
+                    'Authorization': `Bearer ${window.localStorage.getItem('token') as string}`,
+                },
             });
             if(response.ok) {
                 return response.json();
