@@ -140,6 +140,7 @@ func (h *imagesHandlers) UploadImage() http.HandlerFunc {
 
 		readForm, err := r.MultipartReader()
 		if err != nil {
+			h.logger.Errorf("error occured: %v", err)
 			h.httpError.NonInternalError(w, http.StatusBadRequest, httpError.WRONG_DTO)
 			return
 		}

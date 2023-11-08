@@ -117,7 +117,7 @@
                     <TableBodyRow>
                       <TableBodyCell>{project.name}</TableBodyCell>  
                       <TableBodyCell>
-                        <a href="/markup" class="font-medium text-primary-600 hover:underline dark:text-primary-500">
+                        <a href={`/project/${project.id}`} class="font-medium text-primary-600 hover:underline dark:text-primary-500">
                             Open
                         </a>
                       </TableBodyCell>

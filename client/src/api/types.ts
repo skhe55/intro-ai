@@ -36,12 +36,10 @@ export type TImage = {
     filename: string;
     pathToImage: string;
     projectId: string;
-    coordinates: number[][] | null;
     created_at: Date;
 };
 
 export type TImageDto = {
     filename: string;
     projectId: string;
-    coordinates: number[][];
 };
