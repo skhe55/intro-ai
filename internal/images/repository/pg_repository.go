@@ -40,32 +40,69 @@ func (r *imagesRepository) GetAllImagesByProjectId(ctx context.Context, projectI
 		return models.ImagesDTO{
 			ID:          item.ID,
 			ProjectId:   item.ProjectId,
-			FileName:    item.FileName,
+			Name:        item.Name,
 			PathToImage: item.PathToImage.String,
 			CreatedAt:   item.CreatedAt,
 		}
 	}), nil
 }
 
-func (r *imagesRepository) CreateImage(ctx context.Context, image *models.ImagesDTO) error {
+func (r *imagesRepository) CreateImage(ctx context.Context, imageDto *models.ImagesDTO) (string, error) {
 	conn, err := r.db.Connx(ctx)
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer conn.Close()
 
-	if _, err := conn.ExecContext(
+	var imageId string
+
+	row := conn.QueryRowxContext(
 		ctx,
-		"INSERT INTO images (project_id, filename, created_at, updated_at) VALUES ($1, $2, $3, $4)",
-		image.ProjectId,
-		image.FileName,
+		"INSERT INTO images (project_id, name, created_at, updated_at) VALUES ($1, $2, $3, $4) returning id",
+		imageDto.ProjectId,
+		imageDto.Name,
 		time.Now().UTC().Format(time.RFC3339),
 		time.Now().UTC().Format(time.RFC3339),
-	); err != nil {
-		return err
+	)
+	if row.Err() != nil {
+		return "", err
+	}
+	if err := row.Scan(&imageId); err != nil {
+		return "", err
+	}
+	return imageId, nil
+}
+
+func (r *imagesRepository) GetImageById(ctx context.Context, imageId string) (*models.ImagesDTO, error) {
+	conn, err := r.db.Connx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close()
+
+	var image models.Images
+
+	row := conn.QueryRowxContext(
+		ctx,
+		"SELECT * FROM images WHERE id = $1",
+		imageId,
+	)
+
+	if err := row.Err(); err != nil {
+		return nil, err
 	}
 
-	return nil
+	if err := row.StructScan(&image); err != nil {
+		return nil, err
+	}
+
+	return &models.ImagesDTO{
+		ID:          image.ID,
+		Name:        image.Name,
+		ProjectId:   image.ProjectId,
+		PathToImage: image.PathToImage.String,
+		CreatedAt:   image.CreatedAt,
+	}, nil
 }
 
 func (r *imagesRepository) UploadImage(ctx context.Context, imageId string, pathToImage string) error {
@@ -102,5 +139,23 @@ func (r *imagesRepository) DeleteImage(ctx context.Context, imageId string) erro
 	); err != nil {
 		return err
 	}
+	return nil
+}
+
+func (r *imagesRepository) DeleteImagesByProjectId(ctx context.Context, projectId string) error {
+	conn, err := r.db.Connx(ctx)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	if _, err := conn.ExecContext(
+		ctx,
+		"DELETE FROM images WHERE project_id = $1",
+		projectId,
+	); err != nil {
+		return err
+	}
+
 	return nil
 }

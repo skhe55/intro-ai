@@ -33,13 +33,13 @@ export type TProjectDto = {
 
 export type TImage = {
     id: string;
-    filename: string;
-    pathToImage: string;
+    name: string;
+    path_to_image: string;
     projectId: string;
     created_at: Date;
 };
 
 export type TImageDto = {
-    filename: string;
+    name: string;
     projectId: string;
 };

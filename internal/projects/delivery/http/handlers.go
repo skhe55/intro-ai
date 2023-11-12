@@ -3,6 +3,7 @@ package http
 import (
 	"encoding/json"
 	"intro-ai/config"
+	"intro-ai/internal/images"
 	"intro-ai/internal/models"
 	"intro-ai/internal/projects"
 	"intro-ai/internal/server/response"
@@ -20,6 +21,7 @@ type projectsHandlers struct {
 	logger          logger.Logger
 	httpError       httpError.HttpError
 	projectsService projects.Service
+	imagesService   images.Service
 }
 
 func NewProjectsHandlers(
@@ -27,12 +29,14 @@ func NewProjectsHandlers(
 	logger logger.Logger,
 	httpError httpError.HttpError,
 	projectsService projects.Service,
+	imagesService images.Service,
 ) projects.Handlers {
 	return &projectsHandlers{
 		cfg:             cfg,
 		logger:          logger,
 		httpError:       httpError,
 		projectsService: projectsService,
+		imagesService:   imagesService,
 	}
 }
 
@@ -101,6 +105,13 @@ func (h *projectsHandlers) DeleteProject() http.HandlerFunc {
 		}
 
 		if err := h.projectsService.DeleteProject(r.Context(), projectId); err != nil {
+			h.logger.Error(err)
+			h.httpError.InternalError(w)
+			return
+		}
+
+		if err := h.imagesService.DeleteImagesByProjectId(r.Context(), projectId); err != nil {
+			h.logger.Error(err)
 			h.httpError.InternalError(w)
 			return
 		}

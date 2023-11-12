@@ -2,7 +2,7 @@
 	import { onMount } from "svelte";
 	import { ImageApi } from "$api/index";
 	import type { TImage } from "$api/types";
-	import { Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell, Button, Alert, GradientButton, Modal, Fileupload, Label, Helper, Select, Toast } from "flowbite-svelte";
+	import { Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell, Button, Alert, GradientButton, Modal, Fileupload, Label, Helper, Toast, Input } from "flowbite-svelte";
 	import { CheckCircleSolid, CloseCircleSolid } from "flowbite-svelte-icons";
 
     let imagesApi = new ImageApi();
@@ -11,6 +11,7 @@
     let uploadedImage: FileList | undefined;
 
     let projectId: string | undefined = '';
+    let imageName: string = '';
 
     let isOpenModal: boolean = false;
 
@@ -32,12 +33,19 @@
     const onCreateImage = () => {
         (async () => {
             if(projectId && uploadedImage) {
-                const response = await imagesApi.uploadImage(projectId, uploadedImage[0]);
-                if (response?.Status == "OK") {
-                    onShowToast(`Successful upload image!`, true, "success");
-                    setTimeout(() => {
-                        onShowToast("", false, "success");
-                    }, 5000);
+                const createdImageResponse = await imagesApi.createImage({name: imageName, projectId: projectId});
+                if (createdImageResponse && createdImageResponse.Status == "OK") {
+                    const response = await imagesApi.uploadImage(createdImageResponse.Result, projectId, uploadedImage[0]);
+                    if(response && response.Status == "OK") {
+                        const response = await imagesApi.getImages(projectId);
+                        if (response) {
+                            images = [...response.Result];
+                        }
+                        onShowToast(`Successful upload image!`, true, "success");
+                        setTimeout(() => {
+                            onShowToast("", false, "success");
+                        }, 5000);
+                    }
                 } else {
                     onShowToast(`Error occured while we uploading image!`, true, "error");
                     setTimeout(() => {
@@ -64,6 +72,10 @@
 <section class="project-slug-page">
     <Modal title="Create image" bind:open={isOpenModal} size={'xs'} autoclose>
         <form>
+            <div>
+                <Label>Name</Label>
+                <Input bind:value={imageName} />
+            </div>
             <div>
                 <Label for="picture" class="mb-2">Picture</Label>
                 <Fileupload bind:files={uploadedImage} />
@@ -106,10 +118,10 @@
                     <TableBodyRow>
                         <TableBodyCell>{image.id}</TableBodyCell>
                         <TableBodyCell>{image.projectId}</TableBodyCell>
-                        <TableBodyCell>{image.filename}</TableBodyCell>
+                        <TableBodyCell>{image.name}</TableBodyCell>
                         <TableBodyCell>{image.created_at}</TableBodyCell>
                         <TableBodyCell>
-                            <a href={`/markup/${projectId}`} class="font-medium text-primary-600 hover:underline dark:text-primary-500">
+                            <a href={`/markup/${image.id}`} class="font-medium text-primary-600 hover:underline dark:text-primary-500">
                                 Open
                             </a>
                         </TableBodyCell>

@@ -23,12 +23,12 @@ export class ImageApi {
         }
     };
     
-    uploadImage = async (id: string, file: File): Promise<TStandartApiResponse<string> | null> => {
+    uploadImage = async (id: string, projectId: string, file: File): Promise<TStandartApiResponse<string> | null> => {
         try {
             const formData = new FormData();
             formData.append("file", file);
 
-            const response = await fetch(`${DEFAULT_API_PATH}/images/upload/${id}`, {
+            const response = await fetch(`${DEFAULT_API_PATH}/images/upload/${id}?projectId=${projectId}`, {
                 method: "POST",
                 headers: {
                     'Authorization': `Bearer ${window.localStorage.getItem('token') as string}`,
@@ -49,7 +49,7 @@ export class ImageApi {
 
     getImages = async (projectId: string): Promise<TStandartApiResponse<TImage[]> | null> => {
         try {
-            const response = await fetch(`${DEFAULT_API_PATH}/images/${projectId}`, {
+            const response = await fetch(`${DEFAULT_API_PATH}/images/all/${projectId}`, {
                 headers: {
                     'Authorization': `Bearer ${window.localStorage.getItem('token') as string}`
                 },
@@ -61,6 +61,24 @@ export class ImageApi {
             }
         } catch(e) {
             console.error(`getImages: ${e}`);
+            return null;
+        }
+    };
+
+    getImageById = async (imageId: string): Promise<TStandartApiResponse<TImage> | null> => {
+        try {
+            const response = await fetch(`${DEFAULT_API_PATH}/images/${imageId}`, {
+                headers: {
+                    'Authorization': `Bearer ${window.localStorage.getItem('token')}`
+                },
+            });
+            if (response.ok) {
+                return response.json();
+            } else {
+                return null;
+            }
+        } catch(e) {
+            console.error(`getImageById: ${e}`);
             return null;
         }
     };

@@ -57,7 +57,7 @@ func (r *projectsRepository) GetAllProjects(ctx context.Context) ([]models.Proje
 					return models.ImagesDTO{
 						ID:          mapItem.(map[string]interface{})["id"].(string),
 						ProjectId:   mapItem.(map[string]interface{})["project_id"].(string),
-						FileName:    mapItem.(map[string]interface{})["filename"].(string),
+						Name:        mapItem.(map[string]interface{})["name"].(string),
 						PathToImage: pathToImage,
 						CreatedAt:   createdAt}
 				})

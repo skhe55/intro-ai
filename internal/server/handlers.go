@@ -39,7 +39,7 @@ func (s *Server) MapHandlers(mux *http.ServeMux) error {
 	mw := middleware.NewMiddlewareManager(s.cfg, s.logger, myHttpError, authService)
 
 	authHandlers := authHttp.NewAuthHandlers(s.cfg, s.logger, myHttpError, authService)
-	projectsHandlers := projectsHttp.NewProjectsHandlers(s.cfg, s.logger, myHttpError, projectsService)
+	projectsHandlers := projectsHttp.NewProjectsHandlers(s.cfg, s.logger, myHttpError, projectsService, imagesService)
 	imagesHandlers := imagesHttp.NewImagesHandlers(s.cfg, s.logger, myHttpError, imagesService)
 	labelsHandlers := labelsHttp.NewLabelsHandlers(s.cfg, s.logger, myHttpError, labelsService)
 	annotationsHandlers := annotationsHttp.NewAnnotationsHandlers(s.cfg, s.logger, myHttpError, annotationsService)

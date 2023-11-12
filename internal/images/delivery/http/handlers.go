@@ -66,6 +66,32 @@ func (h *imagesHandlers) GetAllImagesByProjectId() http.HandlerFunc {
 	}
 }
 
+func (h *imagesHandlers) GetImageById() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		imageId := httpHelper.RetriveIdFromUrlPath(r.URL.Path)
+
+		if imageId == "" {
+			h.httpError.NonInternalError(w, http.StatusNotFound, httpError.WRONG_ID)
+			return
+		}
+		image, err := h.imagesService.GetImageById(r.Context(), imageId)
+		if err != nil {
+			h.httpError.InternalError(w)
+			return
+		}
+
+		res, err := utils.ToJSON[response.Response](response.OK(response.StatusOK, image))
+		if err != nil {
+			h.logger.Error(err)
+			h.httpError.InternalError(w)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Write(res)
+	}
+}
+
 func (h *imagesHandlers) CreateImage() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var image *models.ImagesDTO
@@ -73,6 +99,7 @@ func (h *imagesHandlers) CreateImage() http.HandlerFunc {
 		decoder.DisallowUnknownFields()
 		err := decoder.Decode(&image)
 		if err != nil {
+			h.logger.Error(err)
 			h.httpError.NonInternalError(w, http.StatusBadRequest, httpError.WRONG_DTO)
 			return
 		}
@@ -83,12 +110,13 @@ func (h *imagesHandlers) CreateImage() http.HandlerFunc {
 			return
 		}
 
-		if err := h.imagesService.CreateImage(r.Context(), image); err != nil {
+		imageId, err := h.imagesService.CreateImage(r.Context(), image)
+		if err != nil {
 			h.httpError.InternalError(w)
 			return
 		}
 
-		res, _ := utils.ToJSON[response.Response](response.OK(response.StatusOK, nil))
+		res, _ := utils.ToJSON[response.Response](response.OK(response.StatusOK, imageId))
 
 		w.WriteHeader(http.StatusOK)
 		w.Write(res)
@@ -132,8 +160,9 @@ func (h *imagesHandlers) DeleteImage() http.HandlerFunc {
 
 func (h *imagesHandlers) UploadImage() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		projectIds, ok := r.URL.Query()["projectId"]
 		imageId := httpHelper.RetriveIdFromUrlPath(r.URL.Path)
-		if imageId == "" {
+		if imageId == "" || !ok {
 			h.httpError.NonInternalError(w, http.StatusBadRequest, httpError.WRONG_ID)
 			return
 		}
@@ -158,7 +187,7 @@ func (h *imagesHandlers) UploadImage() http.HandlerFunc {
 					h.httpError.NonInternalError(w, http.StatusBadRequest, "Not recognized file extension. Supported extensions: jpg, png.")
 					return
 				}
-				if err := h.imagesService.UploadImage(r.Context(), imageId, buf, mimeType); err != nil {
+				if err := h.imagesService.UploadImage(r.Context(), imageId, projectIds[0], buf, mimeType); err != nil {
 					h.httpError.InternalError(w)
 					return
 				}

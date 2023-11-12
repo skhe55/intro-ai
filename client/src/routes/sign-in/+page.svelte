@@ -33,8 +33,10 @@
 
 <section class="sign-in-page">
     <form class="container">
+        <Label>Login</Label>
         <Input bind:value={login} />
-        <Input bind:value={password} /> 
+        <Label>Password</Label>
+        <Input bind:value={password} type={"password"} /> 
         <div class="container__buttons">
             <Button 
                 color="alternative"
