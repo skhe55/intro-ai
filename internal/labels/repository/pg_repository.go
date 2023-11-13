@@ -4,6 +4,7 @@ import (
 	"context"
 	"intro-ai/internal/labels"
 	"intro-ai/internal/models"
+	"intro-ai/pkg/utils"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -35,6 +36,34 @@ func (r *labelsRepository) CreateLabel(ctx context.Context, labelDTO *models.Lab
 	}
 
 	return nil
+}
+
+func (r *labelsRepository) GetLabelsByProjectId(ctx context.Context, projectId string) ([]models.LabelDTO, error) {
+	conn, err := r.db.Connx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close()
+
+	var labels []models.Labels
+
+	if err := conn.SelectContext(
+		ctx,
+		&labels,
+		"SELECT id, project_id, name, created_at FROM labels WHERE project_id = $1",
+		projectId,
+	); err != nil {
+		return nil, err
+	}
+
+	return utils.Map[models.Labels, models.LabelDTO](labels, func(item models.Labels, _ int) models.LabelDTO {
+		return models.LabelDTO{
+			ID:        item.ID,
+			Name:      item.Name,
+			ProjectId: item.ProjectId,
+			CreatedAt: item.CreatedAt,
+		}
+	}), nil
 }
 
 func (r *labelsRepository) DeleteLabel(ctx context.Context, labelId string) error {

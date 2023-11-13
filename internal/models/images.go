@@ -25,4 +25,5 @@ type ImagesDTO struct {
 
 type ImageDeleteDto struct {
 	PathToImage string `json:"path_to_image" validate:"required"`
+	ProjectId   string `json:"project_id" validate:"required"`
 }

@@ -3,6 +3,7 @@ version: '3.1'
 services:
   db:
     image: postgres:15
+    container_name: intro_db
     restart: always
     env_file:
       - ../dev.env
@@ -13,6 +14,7 @@ services:
   ftp:
     image: fauria/vsftpd
     container_name: vsftpd
+    restart: always
     env_file: 
       - ../dev.env
     ports:

@@ -65,6 +65,32 @@ func (h *labelsHandlers) CreateLabel() http.HandlerFunc {
 	}
 }
 
+func (h *labelsHandlers) GetLabelsByProjectId() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		projectIds, ok := r.URL.Query()["projectId"]
+		if !ok {
+			h.httpError.NonInternalError(w, http.StatusBadRequest, httpError.WRONG_ID)
+			return
+		}
+
+		labels, err := h.labelsService.GetLabelsByProjectId(r.Context(), projectIds[0])
+		if err != nil {
+			h.httpError.InternalError(w)
+			return
+		}
+
+		res, err := utils.ToJSON[response.Response](response.OK(response.StatusOK, labels))
+		if err != nil {
+			h.logger.Error(err)
+			h.httpError.InternalError(w)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Write(res)
+	}
+}
+
 func (h *labelsHandlers) DeleteLabel() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		labelId := httpHelper.RetriveIdFromUrlPath(r.URL.Path)

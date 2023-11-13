@@ -51,12 +51,6 @@ func (s *imagesService) CreateImage(ctx context.Context, image *models.ImagesDTO
 }
 
 func (s *imagesService) DeleteImage(ctx context.Context, imageId string, dto *models.ImageDeleteDto) error {
-	err := s.imagesRepository.DeleteImage(ctx, imageId)
-	if err != nil {
-		s.logger.Errorf("unable delete image from db: %v", err)
-		return err
-	}
-
 	conn, err := ftp.Dial(s.cfg.FtpConnectionString)
 	if err != nil {
 		s.logger.Errorf("unable connect to ftp server: %v", err)
@@ -69,8 +63,23 @@ func (s *imagesService) DeleteImage(ctx context.Context, imageId string, dto *mo
 		return err
 	}
 
+	if err := conn.ChangeDirToParent(); err != nil {
+		s.logger.Errorf("unable to change dir to root dir: %v", err)
+		return err
+	}
+
+	if err := conn.ChangeDir(dto.ProjectId); err != nil {
+		s.logger.Errorf("unable move to needed directory by project id: %v", err)
+		return err
+	}
+
 	if err := conn.Delete(dto.PathToImage); err != nil {
 		s.logger.Errorf("failed delete image from ftp server: %v", err)
+		return err
+	}
+
+	if err := s.imagesRepository.DeleteImage(ctx, imageId); err != nil {
+		s.logger.Errorf("unable delete image from db: %v", err)
 		return err
 	}
 

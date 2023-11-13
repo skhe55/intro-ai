@@ -4,6 +4,8 @@
 	import type { TImage } from "$api/types";
 	import { Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell, Button, Alert, GradientButton, Modal, Fileupload, Label, Helper, Toast, Input } from "flowbite-svelte";
 	import { CheckCircleSolid, CloseCircleSolid } from "flowbite-svelte-icons";
+	import { DEFAULT_API_PATH } from "$constants/index";
+    import { format } from 'fecha';
 
     let imagesApi = new ImageApi();
     let images: TImage[] = [];
@@ -48,6 +50,29 @@
                     }
                 } else {
                     onShowToast(`Error occured while we uploading image!`, true, "error");
+                    setTimeout(() => {
+                        onShowToast("", false, "error");
+                    }, 5000);
+                }
+            }
+        })();
+    };
+
+    const onDeleteImage = (id: string, pathToImage: string) => {
+        (async () => {
+            if(projectId) {
+                const response = await imagesApi.deleteImage(id, {project_id: projectId, path_to_image: pathToImage});
+                if (response && response.Status === "OK") {
+                    const response = await imagesApi.getImages(projectId); 
+                    if(response) {
+                        images = [...response.Result];
+                    }
+                    onShowToast(`Succesful deleted image!`, true, "success");
+                    setTimeout(() => {
+                        onShowToast("", false, "success");
+                    }, 5000);
+                } else {
+                    onShowToast(`Error occured while we deleting image!`, true, "error");
                     setTimeout(() => {
                         onShowToast("", false, "error");
                     }, 5000);
@@ -107,7 +132,7 @@
         <Table divClass={"overflow-y-auto h-full mb-20"} striped={true}>
             <TableHead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-400">
                 <TableHeadCell>Id</TableHeadCell>
-                <TableHeadCell>Project Id</TableHeadCell>
+                <TableHeadCell>Preview</TableHeadCell>
                 <TableHeadCell>Name</TableHeadCell>
                 <TableHeadCell>Created</TableHeadCell>
                 <TableHeadCell class="w-16"></TableHeadCell>
@@ -117,16 +142,18 @@
                 {#each images as image (image.id)}
                     <TableBodyRow>
                         <TableBodyCell>{image.id}</TableBodyCell>
-                        <TableBodyCell>{image.projectId}</TableBodyCell>
+                        <TableBodyCell>
+                            <img class="preview-img" src={`${DEFAULT_API_PATH}/static/${projectId}/${image.path_to_image}`} alt={"image out of reach"} />
+                        </TableBodyCell>
                         <TableBodyCell>{image.name}</TableBodyCell>
-                        <TableBodyCell>{image.created_at}</TableBodyCell>
+                        <TableBodyCell>{format(new Date(image.created_at), "MM.DD.YYYY")}</TableBodyCell>
                         <TableBodyCell>
                             <a href={`/markup/${image.id}`} class="font-medium text-primary-600 hover:underline dark:text-primary-500">
                                 Open
                             </a>
                         </TableBodyCell>
                         <TableBodyCell>
-                            <Button color={"alternative"}>
+                            <Button on:click={() => onDeleteImage(image.id, image.path_to_image)} color={"alternative"}>
                                 Delete
                             </Button>
                         </TableBodyCell>
@@ -150,6 +177,9 @@
 </section>
 
 <style lang="scss">
+    @use '../../../styles/lib/mixins.scss' as *;
+	@use '../../../styles/lib/variables.scss' as *;
+
     .project-slug-page {
 		display: flex;
         flex-direction: column;
@@ -167,6 +197,11 @@
             height: 95%;
 
             overflow: hidden;
+        }
+
+        .preview-img {
+            width: 60px;
+            height: 60px;
         }
 	}
 </style>

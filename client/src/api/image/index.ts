@@ -1,5 +1,5 @@
 import { DEFAULT_API_PATH } from "$constants/index";
-import type { TImage, TImageDto, TStandartApiResponse } from "$api/types";
+import type { TImage, TImageDeleteDto, TImageDto, TStandartApiResponse } from "$api/types";
 
 export class ImageApi {
     createImage = async (payload: TImageDto): Promise<TStandartApiResponse<string> | null> => {
@@ -79,6 +79,27 @@ export class ImageApi {
             }
         } catch(e) {
             console.error(`getImageById: ${e}`);
+            return null;
+        }
+    };
+
+    deleteImage = async (imageId: string, dto: TImageDeleteDto): Promise<TStandartApiResponse<string> | null> => {
+        try {
+            const response = await fetch(`${DEFAULT_API_PATH}/images/delete/${imageId}`, {
+                method: "DELETE",
+                headers: {
+                    'Authorization': `Bearer ${window.localStorage.getItem('token')}`,
+                    'Content-Type': "application/json"
+                },
+                body: JSON.stringify(dto)
+            });
+            if (response.ok) {
+                return response.json();
+            } else {
+                return null;
+            }
+        } catch(e) {
+            console.error(`deleteImage: ${e}`);
             return null;
         }
     };

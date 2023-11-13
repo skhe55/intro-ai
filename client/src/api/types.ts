@@ -43,3 +43,20 @@ export type TImageDto = {
     name: string;
     projectId: string;
 };
+
+export type TImageDeleteDto = {
+    project_id: string;
+    path_to_image: string;
+};
+
+export type TLabelDto = {
+    project_id: string;
+    name: string;
+};
+
+export type TLabel = {
+    id: string;
+    name: string;
+    project_id: string;
+    created_at: Date;
+};
