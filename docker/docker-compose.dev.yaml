@@ -10,5 +10,17 @@ services:
       - 5433:5432
     volumes: 
       - db:/var/lib/postgresql/data/
+  ftp:
+    image: fauria/vsftpd
+    container_name: vsftpd
+    env_file: 
+      - ../dev.env
+    ports:
+      - '2022:22/tcp'
+      - '21:21/tcp'
+      - '21100-21110:21100-21110/tcp'
+    volumes:
+      - '/home/ikbkr/projects/intro-ai/ftpdata:/home/vsftpd:z'
 volumes:
   db:
+  ftp:

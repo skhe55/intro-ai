@@ -23,6 +23,8 @@ import (
 )
 
 func (s *Server) MapHandlers(mux *http.ServeMux) error {
+	fileServer := http.FileServer(http.Dir("./ftpdata/ikbkr/"))
+
 	authRepository := authRepository.NewAuthRepository(s.db)
 	projectsRepository := projectsRepository.NewProjectsRepository(s.db)
 	imagesRepository := imagesRepository.NewImagesRepository(s.db)
@@ -49,5 +51,7 @@ func (s *Server) MapHandlers(mux *http.ServeMux) error {
 	imagesHttp.MapImagesRoutes("images", imagesHandlers, mw, mux)
 	labelsHttp.MapLabelsRoutes("labels", labelsHandlers, mw, mux)
 	annotationsHttp.MapAnnotationsRoutes("annotations", annotationsHandlers, mw, mux)
+
+	mux.Handle("/static/", http.StripPrefix("/static", fileServer))
 	return nil
 }
