@@ -4,6 +4,6 @@ import "net/http"
 
 type Handlers interface {
 	CreateLabel() http.HandlerFunc
-	GetLabelsByProjectId() http.HandlerFunc
+	GetLabelsByImageId() http.HandlerFunc
 	DeleteLabel() http.HandlerFunc
 }

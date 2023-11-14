@@ -50,13 +50,13 @@ export type TImageDeleteDto = {
 };
 
 export type TLabelDto = {
-    project_id: string;
+    image_id: string;
     name: string;
 };
 
 export type TLabel = {
     id: string;
     name: string;
-    project_id: string;
+    image_id: string;
     created_at: Date;
 };

@@ -8,5 +8,5 @@ import (
 type Service interface {
 	CreateLabel(ctx context.Context, labelDTO *models.LabelDTO) error
 	DeleteLabel(ctx context.Context, labelId string) error
-	GetLabelsByProjectId(ctx context.Context, projectId string) ([]models.LabelDTO, error)
+	GetLabelsByImageId(ctx context.Context, imageId string) ([]models.LabelDTO, error)
 }

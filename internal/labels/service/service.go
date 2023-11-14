@@ -36,10 +36,10 @@ func (s *labelsService) CreateLabel(ctx context.Context, labelDTO *models.LabelD
 	return nil
 }
 
-func (s *labelsService) GetLabelsByProjectId(ctx context.Context, projectId string) ([]models.LabelDTO, error) {
-	labels, err := s.labelsRepository.GetLabelsByProjectId(ctx, projectId)
+func (s *labelsService) GetLabelsByImageId(ctx context.Context, imageId string) ([]models.LabelDTO, error) {
+	labels, err := s.labelsRepository.GetLabelsByImageId(ctx, imageId)
 	if err != nil {
-		s.logger.Errorf("unable get all labels by project id: %v", err)
+		s.logger.Errorf("unable get all labels by image id: %v", err)
 		return nil, err
 	}
 

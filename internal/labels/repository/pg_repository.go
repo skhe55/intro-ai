@@ -27,8 +27,8 @@ func (r *labelsRepository) CreateLabel(ctx context.Context, labelDTO *models.Lab
 
 	if _, err := conn.ExecContext(
 		ctx,
-		"INSERT INTO labels (project_id, name, created_at) VALUES ($1, $2, $3)",
-		labelDTO.ProjectId,
+		"INSERT INTO labels (image_id, name, created_at) VALUES ($1, $2, $3)",
+		labelDTO.ImageId,
 		labelDTO.Name,
 		time.Now().UTC().Format(time.RFC3339),
 	); err != nil {
@@ -38,7 +38,7 @@ func (r *labelsRepository) CreateLabel(ctx context.Context, labelDTO *models.Lab
 	return nil
 }
 
-func (r *labelsRepository) GetLabelsByProjectId(ctx context.Context, projectId string) ([]models.LabelDTO, error) {
+func (r *labelsRepository) GetLabelsByImageId(ctx context.Context, imageId string) ([]models.LabelDTO, error) {
 	conn, err := r.db.Connx(ctx)
 	if err != nil {
 		return nil, err
@@ -50,8 +50,8 @@ func (r *labelsRepository) GetLabelsByProjectId(ctx context.Context, projectId s
 	if err := conn.SelectContext(
 		ctx,
 		&labels,
-		"SELECT id, project_id, name, created_at FROM labels WHERE project_id = $1",
-		projectId,
+		"SELECT id, image_id, name, created_at FROM labels WHERE image_id = $1",
+		imageId,
 	); err != nil {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func (r *labelsRepository) GetLabelsByProjectId(ctx context.Context, projectId s
 		return models.LabelDTO{
 			ID:        item.ID,
 			Name:      item.Name,
-			ProjectId: item.ProjectId,
+			ImageId:   item.ImageId,
 			CreatedAt: item.CreatedAt,
 		}
 	}), nil

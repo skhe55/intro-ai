@@ -7,7 +7,7 @@ import (
 
 type Labels struct {
 	ID        string       `db:"id"`
-	ProjectId string       `db:"project_id"`
+	ImageId   string       `db:"image_id"`
 	Name      string       `db:"name"`
 	CreatedAt time.Time    `db:"created_at"`
 	DeletedAt sql.NullTime `db:"deleted_at"`
@@ -15,7 +15,7 @@ type Labels struct {
 
 type LabelDTO struct {
 	ID        string    `json:"id" validate:"omitempty"`
-	ProjectId string    `json:"project_id" validate:"required"`
+	ImageId   string    `json:"image_id" validate:"required"`
 	Name      string    `json:"name" validate:"required"`
 	CreatedAt time.Time `json:"created_at" validate:"omitempty"`
 }

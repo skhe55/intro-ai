@@ -1,72 +1,183 @@
 <script lang="ts">
-	import { onMount } from "svelte";
-  import { Stage, Layer, Rect, Image, type KonvaMouseEvent, Label } from 'svelte-konva';
+	import { afterUpdate, onMount } from "svelte";
+  import { Stage, Layer, Rect, Image, type KonvaMouseEvent, Label, Tag, Text } from 'svelte-konva';
 	import { ImageApi, LabelApi } from "$api/index";
-	import type { TImage } from "$api/types";
-	import { DEFAULT_API_PATH } from "$constants/index";
-	import { Alert, Button, GradientButton, Input, Modal, Label as TextLabel } from "flowbite-svelte";
+	import type { TImage, TLabel } from "$api/types";
+	import { DEFAULT_API_PATH, initialSquareCoordinates } from "$constants/index";
+	import { Alert, Badge, Button, GradientButton, Input, Modal, Select, Label as TextLabel, Toast } from "flowbite-svelte";
+	import type { TSquare } from "$lib/types";
+	import Square from "$lib/shapes/square.svelte";
+	import { getPointsUpperRightCorner } from "$lib/utils";
+	import { ExclamationCircleSolid } from "flowbite-svelte-icons";
 
-    const imagesApi = new ImageApi();
-    const labelApi = new LabelApi();
+  let uuid = crypto.randomUUID();
+  const imagesApi = new ImageApi();
+  const labelApi = new LabelApi();
 
-    let imageId: string | undefined = '';
-    let currentImage: TImage;
-    let imageElem: HTMLOrSVGImageElement;
+  let imageId: string | undefined = '';
+  let currentImage: TImage;
+  let imageElem: HTMLOrSVGImageElement;
 
-    let labelName: string = '';
-    let isOpenModal: boolean = false;
+  let labelName: string = '';
+  let labels: TLabel[] = [];
+  let selectedLabel: {id: string, name: string} | undefined;
+  let isOpenModal: boolean = false;
 
-    let isShowToast: {msg: string, f: boolean, type: "error" | "success"} = {msg: '', f: false, type: "success"};
+  let isMarkupMode: boolean = false;
+  let isWatchMode: boolean = false;
+  let isEditMode: boolean = false;
+  let squares: TSquare[] = [];
+  let squareCoords: Omit<TSquare, 'id' | 'label_name'> = initialSquareCoordinates;
 
-    const onShowToast = (msg: string, f: boolean, type: "error" | "success") => {
-        isShowToast = {
-            msg: msg,
-            f: f,
-            type,
+  let labelConfig = {
+    x: 0,
+    y: 0,
+    opacity: 0.8,
+    visible: false,
+  };
+
+  let labelTextConfig = {
+    text: "",
+    fontSize: 18,
+    padding: 5,
+    fill: "white",
+  };
+
+  let isShowToast: {msg: string, f: boolean, color: "green" | "orange" | "red"} = {msg: '', f: false, color: "green"};
+
+  const onShowToast = (msg: string, f: boolean, color: "green" | "orange" | "red") => {
+      isShowToast = {
+          msg: msg,
+          f: f,
+          color: color,
+      };
+  };
+
+  const onOpenModal = () => {
+      isOpenModal = true;
+  };
+  
+  const onCreateLabel = () => {
+      (async () => {
+          if(currentImage.id) {
+            const response = await labelApi.createLabel({image_id: currentImage.id, name: labelName});
+            if(response && response.Status == "OK") {
+                const labelResponse = await labelApi.getLabelsByImageId(currentImage.id);
+                if(labelResponse && labelResponse.Status === "OK") {
+                  labels = [...labelResponse.Result];
+                }
+                onShowToast(`Successful created label!`, true, "green");
+                setTimeout(() => {
+                    onShowToast("", false, "green");
+                }, 5000);
+            }
+            else {
+                onShowToast(`Error occured while we creating label!`, true, "red");
+                setTimeout(() => {
+                    onShowToast("", false, "red");
+                }, 5000);
+            }
+          }
+      })();
+  };
+
+  const onStartMarking = (e: KonvaMouseEvent) => {
+    if(!selectedLabel || !selectedLabel.id) {
+      onShowToast(`You don't choise a label, before starting mark it up, needed select label!`, true, "orange");
+      setTimeout(() => {
+        onShowToast("", false, "orange");
+      }, 5000);
+    } else {
+      const { evt } = e.detail;
+      if (isMarkupMode) {
+        squares = [...squares, { ...squareCoords, id: uuid, label_name: selectedLabel.name }];
+        isMarkupMode = false;
+      } else if (!isEditMode && !isMarkupMode && !isWatchMode) {
+        squareCoords = {
+          x_top: [evt.offsetX, evt.offsetY],
+          x_bottom: [evt.offsetX, evt.offsetY],
+          y_top: [evt.offsetX, evt.offsetY],
+          y_bottom: [evt.offsetX, evt.offsetY]
         };
-    };
+        isMarkupMode = true;
+      }
+    }
+  };
 
-    const onOpenModal = () => {
-        isOpenModal = true;
-    };
-    
-    const onCreateLabel = () => {
-        (async () => {
-            if(currentImage.projectId) {
-              const response = await labelApi.createLabel({project_id: currentImage.projectId, name: labelName});
-              if(response && response.Status == "OK") {
-                const test = await labelApi.getLabelsByProjectId(currentImage.projectId);
-                  onShowToast(`Successful created label!`, true, "success");
-                  setTimeout(() => {
-                      onShowToast("", false, "success");
-                  }, 5000);
-              }
-              else {
-                  onShowToast(`Error occured while we creating label!`, true, "error");
-                  setTimeout(() => {
-                      onShowToast("", false, "error");
-                  }, 5000);
-              }
-            }
-        })();
-    };
+  const onMouseMove = (e: KonvaMouseEvent) => {
+		const { evt } = e.detail;
+		if (isMarkupMode) {
+			squareCoords = {
+				x_top: squareCoords.x_top,
+				x_bottom: [squareCoords.x_top[0], evt.offsetY],
+				y_top: [evt.offsetX, squareCoords.x_top[1]],
+				y_bottom: [evt.offsetX, evt.offsetY]
+			};
+		}
+	};
 
-    onMount(() => {
-        (async () => {
-            imageId = window.location.pathname.split("/").at(-1);
-            if(imageId) {
-              const response = await imagesApi.getImageById(imageId);  
-              if(response && response.Status === "OK") {
-                currentImage = {...response.Result};
-                const img = document.createElement('img') as HTMLImageElement;
-                img.src = `${DEFAULT_API_PATH}/static/${response.Result.projectId}/${response.Result.path_to_image}`;
-                img.onload = () => {
-                  imageElem = img;
-                };
-              }
+  const onRemoveItem = (_: KonvaMouseEvent, id: string) => {
+		squares = squares.filter((item) => item.id !== id);
+	};
+
+  const onMouseEnter = (e: KonvaMouseEvent) => {
+    const konvaEvent = e.detail;
+
+    let hoveredElementPos = konvaEvent.target.getPosition();
+    let hoveredElementName = konvaEvent.target.attrs.name;
+
+    labelConfig.x = hoveredElementPos.x;
+    labelConfig.y = hoveredElementPos.y;
+
+    labelTextConfig.text = hoveredElementName;
+
+    labelConfig.visible = true;
+  }
+
+  const onMouseLeave = (_: KonvaMouseEvent) => {
+    labelConfig.visible = false;
+  };
+
+  onMount(() => {
+    window.addEventListener('keydown', (e) => {
+			if (e.code === 'Escape') {
+        isEditMode = false;
+        isWatchMode = false;
+				isMarkupMode = false;
+			} else if (e.code === 'KeyW') {
+				isEditMode = false;
+        isWatchMode = true;
+        isMarkupMode = false;
+			} else if (e.code === 'KeyE') {
+        isEditMode = true;
+        isWatchMode = false;
+        isMarkupMode = false;
+      } 
+		});
+
+    (async () => {
+        imageId = window.location.pathname.split("/").at(-1);
+        if(imageId) {
+          const response = await imagesApi.getImageById(imageId);  
+          if(response && response.Status === "OK") {
+            currentImage = {...response.Result};
+            const labelsResponse = await labelApi.getLabelsByImageId(currentImage.id);
+            if(labelsResponse && labelsResponse.Status === "OK") {
+              labels = [...labelsResponse.Result];
             }
-        })();
-    });
+            const img = document.createElement('img') as HTMLImageElement;
+            img.src = `${DEFAULT_API_PATH}/static/${response.Result.projectId}/${response.Result.path_to_image}`;
+            img.onload = () => {
+              imageElem = img;
+            };
+          }
+        }
+    })();
+  });
+
+  afterUpdate(() => {
+		uuid = crypto.randomUUID();
+	});
 </script>
 <section class="markup-page">
   <Modal title="Create image" bind:open={isOpenModal} size={'xs'} autoclose>
@@ -83,27 +194,98 @@
   </Modal>
   <Alert color="green">
     <p class="font-medium">
-        Finally, we'll to mark up our image!
+      Finally, we'll to mark up our image!
     </p>
     <p class="font-medium">
-        If you don't have a labels, then we'll create a new labels!
+      If you don't have a labels, then we'll create a new labels!
     </p>
   </Alert>
   <div class="flex gap-3">
       <GradientButton color="tealToLime" on:click={() => window.history.back()}>
-          Back to images
+        Back to images
       </GradientButton >
       <GradientButton on:click={onOpenModal} color="tealToLime">
-          Create label
+        Create label
       </GradientButton>
   </div>
-  <Stage
-    config={{ width: 600, height: 600 }}
-  >
-    <Layer>
-      <Image config={{ image: imageElem, width: 600, height: 600 }} />
-    </Layer>
-  </Stage>
+  <div class="workspace-container">
+    <Stage
+      config={{ width: 600, height: 600 }}
+      on:mousemove={onMouseMove}
+      on:click={onStartMarking}
+    >
+      <Layer>
+        <Image config={{ image: imageElem, width: 600, height: 600 }} />
+        {#if isMarkupMode}
+          <Rect
+            config={{
+              x: squareCoords.x_top[0],
+              y: squareCoords.x_top[1],
+              width: squareCoords.y_top[0] - squareCoords.x_top[0],
+              height: squareCoords.y_bottom[1] - squareCoords.x_top[1],
+              stroke: 'black',
+              strokeWidth: 3
+            }}
+          />
+        {/if}
+        {#each squares as square (square.id)}
+          <Square
+            on:mouseenter={onMouseEnter}
+            on:mouseleave={onMouseLeave}
+            rectConfig={{
+              x: square.x_top[0],
+              y: square.x_top[1],
+              width: square.y_top[0] - square.x_top[0],
+              height: square.y_bottom[1] - square.x_top[1],
+              stroke: 'black',
+              strokeWidth: 3,
+              name: square.label_name,
+            }}
+            crossConfig={{
+              points: getPointsUpperRightCorner(square),
+              stroke: 'red',
+              strokeWidth: 4
+            }}
+            crossOnClick={(e) => onRemoveItem(e, square.id)}
+            isShowCross={isEditMode}
+          />
+        {/each}
+        <Label config={labelConfig}>
+          <Tag
+                config={{
+                    fill: "black",
+                    pointerDirection: "down",
+                    pointerWidth: 10,
+                    pointerHeight: 10,
+                    lineJoin: "round",
+                    shadowColor: "black",
+                    shadowBlur: 10,
+                    shadowOffsetX: 10,
+                    shadowOffsetY: 10,
+                    shadowOpacity: 0.5,
+                }}
+          />
+            <Text config={labelTextConfig} />
+        </Label>
+      </Layer>
+    </Stage>
+    <div class="label-select-container">
+      <Select bind:value={selectedLabel} placeholder={"Choose label"} class="w-80">
+        {#each labels as label (label.id)}
+          <option value={{id: label.id, name: label.name}}>{label.name}</option>
+        {/each}
+      </Select>
+      {#if isShowToast.f}
+        <Toast color={isShowToast.color}>
+          <svelte:fragment slot="icon">
+            <ExclamationCircleSolid class="w-5 h-5" />
+            <span class="sr-only">Warning icon</span>
+          </svelte:fragment>
+          {isShowToast.msg}
+        </Toast>
+      {/if}
+    </div>
+  </div>
 </section>
 
 <style lang="scss">
@@ -121,17 +303,18 @@
 		margin: 20px;
 
 		height: 95%;
+  
+    .workspace-container {
+      display: flex;
 
-		.markup-view-container {
-			display: flex;
-			flex-direction: column;
-			align-items: flex-start;
+      gap: 20px;
 
-			gap: 20px;
+      .label-select-container {
+        display: flex;
+        flex-direction: column;
 
-			.canvas-container {
-				box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
-			}
-		}
+        gap: 10px;
+      }
+    }
 	}
 </style>

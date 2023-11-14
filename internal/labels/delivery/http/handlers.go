@@ -65,15 +65,15 @@ func (h *labelsHandlers) CreateLabel() http.HandlerFunc {
 	}
 }
 
-func (h *labelsHandlers) GetLabelsByProjectId() http.HandlerFunc {
+func (h *labelsHandlers) GetLabelsByImageId() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		projectIds, ok := r.URL.Query()["projectId"]
+		imageIds, ok := r.URL.Query()["imageId"]
 		if !ok {
 			h.httpError.NonInternalError(w, http.StatusBadRequest, httpError.WRONG_ID)
 			return
 		}
 
-		labels, err := h.labelsService.GetLabelsByProjectId(r.Context(), projectIds[0])
+		labels, err := h.labelsService.GetLabelsByImageId(r.Context(), imageIds[0])
 		if err != nil {
 			h.httpError.InternalError(w)
 			return

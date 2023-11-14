@@ -11,7 +11,7 @@
 </script>
 
 <Group>
-	<Rect config={rectConfig} />
+	<Rect config={rectConfig} on:mouseenter on:mouseleave/>
 	{#if isShowCross}
 		<Cross config={crossConfig} on:click={crossOnClick} />
 	{/if}

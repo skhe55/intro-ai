@@ -13,6 +13,7 @@ export type TCanvasItem = {
 // markup page
 export type TSquare = {
 	id: string;
+	label_name: string;
 	x_top: TPoint;
 	x_bottom: TPoint;
 	y_top: TPoint;

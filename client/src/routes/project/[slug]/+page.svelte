@@ -131,10 +131,10 @@
     <div class="table-container">
         <Table divClass={"overflow-y-auto h-full mb-20"} striped={true}>
             <TableHead class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-400">
-                <TableHeadCell>Id</TableHeadCell>
-                <TableHeadCell>Preview</TableHeadCell>
-                <TableHeadCell>Name</TableHeadCell>
-                <TableHeadCell>Created</TableHeadCell>
+                <TableHeadCell class="w-16">Id</TableHeadCell>
+                <TableHeadCell class="w-32">Preview</TableHeadCell>
+                <TableHeadCell class="w-32">Name</TableHeadCell>
+                <TableHeadCell class="w-32">Created</TableHeadCell>
                 <TableHeadCell class="w-16"></TableHeadCell>
                 <TableHeadCell class="w-16"></TableHeadCell>
             </TableHead>

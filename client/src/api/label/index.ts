@@ -23,9 +23,9 @@ export class LabelApi {
         }
     };
 
-    getLabelsByProjectId = async (projectId: string): Promise<TStandartApiResponse<TLabel[]> | null> => {
+    getLabelsByImageId = async (imageId: string): Promise<TStandartApiResponse<TLabel[]> | null> => {
         try {
-            const response = await fetch(`${DEFAULT_API_PATH}/labels?projectId=${projectId}`, {
+            const response = await fetch(`${DEFAULT_API_PATH}/labels?imageId=${imageId}`, {
                 headers: {
                     'Authorization': `Bearer ${window.localStorage.getItem('token')}`
                 },

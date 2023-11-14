@@ -9,6 +9,8 @@ m-down:
 	goose -dir=${MIGRATIONS-DIR} postgres ${PSQL-DSN} down
 m-status:
 	goose -dir=${MIGRATIONS-DIR} postgres $(PSQL-DSN) status
+m-reset:
+	goose -dir=${MIGRATIONS-DIR} postgres $(PSQL-DSN) reset
 
 #run docker-container
 docker-dev: 
