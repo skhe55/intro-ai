@@ -26,8 +26,8 @@ func NewProjectsService(
 	}
 }
 
-func (s *projectsService) GetAllProjects(ctx context.Context) ([]models.ProjectsWithImages, error) {
-	projects, err := s.projectsRepository.GetAllProjects(ctx)
+func (s *projectsService) GetAllProjects(ctx context.Context, userId uint64) ([]models.ProjectsWithImages, error) {
+	projects, err := s.projectsRepository.GetAllProjects(ctx, userId)
 
 	if err != nil {
 		s.logger.Error(err)

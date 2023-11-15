@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { afterUpdate, onMount } from "svelte";
-  import { Stage, Layer, Rect, Image, type KonvaMouseEvent, Label, Tag, Text } from 'svelte-konva';
+  import { Stage, Layer, Rect, Image, type KonvaMouseEvent, Label, Tag, Text, type KonvaWheelEvent } from 'svelte-konva';
 	import { AnnotationApi, ImageApi, LabelApi } from "$api/index";
 	import type { TImage, TLabel } from "$api/types";
 	import { DEFAULT_API_PATH, initialSquareCoordinates } from "$constants/index";
-	import { Alert, Badge, Button, GradientButton, Input, Modal, Select, Label as TextLabel, Toast } from "flowbite-svelte";
+	import { Alert, Button, GradientButton, Input, Modal, Select, Label as TextLabel, Toast } from "flowbite-svelte";
 	import type { TSquare } from "$lib/types";
 	import Square from "$lib/shapes/square.svelte";
 	import { getPointsUpperRightCorner, mappingAnnotationsToSquare } from "$lib/utils";
@@ -16,7 +16,10 @@
   let imageWidth: number;
   let imageHeight: number;
 
+  let stageScale: number;
+
   let uuid = crypto.randomUUID();
+  
   const imagesApi = new ImageApi();
   const labelApi = new LabelApi();
   const annotationApi = new AnnotationApi();
@@ -123,41 +126,42 @@
   };
 
   const onStartMarking = (e: KonvaMouseEvent) => {
-    if(!selectedLabel || !selectedLabel.id) {
+    if((!selectedLabel || !selectedLabel.id) && !isEditMode && !isWatchMode) {
       onShowToast(`You don't choise a label, before starting mark it up, needed select label!`, true, "orange");
       setTimeout(() => {
         onShowToast("", false, "orange");
       }, 5000);
     } else {
-      const { evt } = e.detail;
-      if (isMarkupMode) {
+      if (isMarkupMode && selectedLabel) {
         squares = [...squares, { ...squareCoords, id: uuid, label_name: selectedLabel.name, restored: false }];
         isMarkupMode = false;
         onCreateAnnotation(selectedLabel.id, [squareCoords.x_top, squareCoords.x_bottom, squareCoords.y_top, squareCoords.y_bottom]);
       } else if (!isEditMode && !isMarkupMode && !isWatchMode) {
-        squareCoords = {
-          x_top: [evt.offsetX, evt.offsetY],
-          x_bottom: [evt.offsetX, evt.offsetY],
-          y_top: [evt.offsetX, evt.offsetY],
-          y_bottom: [evt.offsetX, evt.offsetY]
-        };
-        isMarkupMode = true;
+        const position = e.detail.target.getStage()?.getRelativePointerPosition();
+        if(position) {
+          squareCoords = {
+            x_top: [position.x, position.y],
+            x_bottom: [position.x, position.y],
+            y_top: [position.x, position.y],
+            y_bottom: [position.x, position.y]
+          };
+          isMarkupMode = true;
+        }
       }
     }
   };
 
   const onMouseMove = (e: KonvaMouseEvent) => {
-		const { evt } = e.detail;
-    const imgPosition = e.detail.target.getRelativePointerPosition() as any;
+    const position = e.detail.target.getStage()?.getRelativePointerPosition();
 
-		if (isMarkupMode) {
-			squareCoords = {
-				x_top: [squareCoords.x_top[0], squareCoords.x_top[1]],
-				x_bottom: [squareCoords.x_top[0], evt.offsetY + imgPosition.y],
-				y_top: [evt.offsetX + imgPosition.x, squareCoords.x_top[1]],
-				y_bottom: [evt.offsetX + imgPosition.x, evt.offsetY + imgPosition.y]
-			};
-		}
+    if (position && isMarkupMode) {
+      squareCoords = {
+        x_top: [squareCoords.x_top[0], squareCoords.x_top[1]],
+        x_bottom: [squareCoords.x_top[0], position.y],
+        y_top: [position.x, squareCoords.x_top[1]],
+        y_bottom: [position.x, position.y]
+      };
+    }
 	};
 
   const onRemoveItem = (_: KonvaMouseEvent, id: string, restored: boolean) => {
@@ -183,6 +187,17 @@
 
   const onMouseLeave = (_: KonvaMouseEvent) => {
     labelConfig.visible = false;
+  };
+
+  const onWheel = (e: KonvaWheelEvent) => {
+    const wheelDir = e.detail.evt.deltaY < 0 ? 1 : -1;
+    e.detail.evt.preventDefault();
+
+    if(wheelDir === 1) {
+      stageScale += 0.05;
+    } else {
+      stageScale -= 0.05;
+    }
   };
 
   onMount(() => {
@@ -218,6 +233,11 @@
             }
             const img = document.createElement('img') as HTMLImageElement;
             img.src = `${DEFAULT_API_PATH}/static/${response.Result.projectId}/${response.Result.path_to_image}`;
+
+            let scaleWidth = STAGE_WIDTH / img.width
+            let scaleHeight = STAGE_HEIGHT / img.height
+
+            stageScale = Math.min(scaleWidth, scaleHeight);
 
             img.onload = () => {
               imageElem = img;
@@ -261,66 +281,76 @@
       </GradientButton>
   </div>
   <div class="workspace-container">
-    <Stage
-      config={{ width: STAGE_WIDTH, height: STAGE_HEIGHT}}
-      on:mousemove={onMouseMove}
-      on:click={onStartMarking}
-    >
-      <Layer>
-        <Image config={{ image: imageElem, width: imageWidth, height: imageHeight, draggable: true }} />
-        {#if isMarkupMode}
-          <Rect
-            config={{
-              x: squareCoords.x_top[0],
-              y: squareCoords.x_top[1],
-              width: squareCoords.y_top[0] - squareCoords.x_top[0],
-              height: squareCoords.y_bottom[1] - squareCoords.x_top[1],
-              stroke: 'black',
-              strokeWidth: 3
-            }}
-          />
-        {/if}
-        {#each squares as square (square.id)}
-          <Square
-            on:mouseenter={onMouseEnter}
-            on:mouseleave={onMouseLeave}
-            rectConfig={{
-              x: square.x_top[0],
-              y: square.x_top[1],
-              width: square.y_top[0] - square.x_top[0],
-              height: square.y_bottom[1] - square.x_top[1],
-              stroke: 'black',
-              strokeWidth: 3,
-              name: square.label_name,
-            }}
-            crossConfig={{
-              points: getPointsUpperRightCorner(square),
-              stroke: 'red',
-              strokeWidth: 4
-            }}
-            crossOnClick={(e) => onRemoveItem(e, square.id, square.restored)}
-            isShowCross={isEditMode}
-          />
-        {/each}
-        <Label config={labelConfig}>
-          <Tag
-                config={{
-                    fill: "black",
-                    pointerDirection: "down",
-                    pointerWidth: 10,
-                    pointerHeight: 10,
-                    lineJoin: "round",
-                    shadowColor: "black",
-                    shadowBlur: 10,
-                    shadowOffsetX: 10,
-                    shadowOffsetY: 10,
-                    shadowOpacity: 0.5,
-                }}
-          />
-            <Text config={labelTextConfig} />
-        </Label>
-      </Layer>
-    </Stage>
+    <div class="stage-container">
+      <Stage
+        config={
+          {
+            width: STAGE_WIDTH, 
+            height: STAGE_HEIGHT, 
+            draggable: true, 
+            scale: {x:stageScale, y:stageScale},
+          }
+        }
+        on:wheel={onWheel}
+        on:mousemove={onMouseMove}
+        on:click={onStartMarking}
+      >
+        <Layer>
+          <Image config={{ image: imageElem, width: imageWidth, height: imageHeight}} />
+          {#if isMarkupMode}
+            <Rect
+              config={{
+                x: squareCoords.x_top[0],
+                y: squareCoords.x_top[1],
+                width: squareCoords.y_top[0] - squareCoords.x_top[0],
+                height: squareCoords.y_bottom[1] - squareCoords.x_top[1],
+                stroke: 'black',
+                strokeWidth: 3
+              }}
+            />
+          {/if}
+          {#each squares as square (square.id)}
+            <Square
+              on:mouseenter={onMouseEnter}
+              on:mouseleave={onMouseLeave}
+              rectConfig={{
+                x: square.x_top[0],
+                y: square.x_top[1],
+                width: square.y_top[0] - square.x_top[0],
+                height: square.y_bottom[1] - square.x_top[1],
+                stroke: 'black',
+                strokeWidth: 3,
+                name: square.label_name,
+              }}
+              crossConfig={{
+                points: getPointsUpperRightCorner(square),
+                stroke: 'red',
+                strokeWidth: 4
+              }}
+              crossOnClick={(e) => onRemoveItem(e, square.id, square.restored)}
+              isShowCross={isEditMode}
+            />
+          {/each}
+          <Label config={labelConfig}>
+            <Tag
+                  config={{
+                      fill: "black",
+                      pointerDirection: "down",
+                      pointerWidth: 10,
+                      pointerHeight: 10,
+                      lineJoin: "round",
+                      shadowColor: "black",
+                      shadowBlur: 10,
+                      shadowOffsetX: 10,
+                      shadowOffsetY: 10,
+                      shadowOpacity: 0.5,
+                  }}
+            />
+              <Text config={labelTextConfig} />
+          </Label>
+        </Layer>
+      </Stage>
+    </div>
     <div class="label-select-container">
       <Select bind:value={selectedLabel} placeholder={"Choose label"} class="w-80">
         {#each labels as label (label.id)}
@@ -374,6 +404,10 @@
       display: flex;
 
       gap: 20px;
+
+      .stage-container {
+        box-shadow: 0px 1px 16px 2px rgba(34, 60, 80, 0.2) inset;
+      }
 
       .label-select-container {
         display: flex;

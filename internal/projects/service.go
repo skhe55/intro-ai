@@ -6,7 +6,7 @@ import (
 )
 
 type Service interface {
-	GetAllProjects(ctx context.Context) ([]models.ProjectsWithImages, error)
+	GetAllProjects(ctx context.Context, userId uint64) ([]models.ProjectsWithImages, error)
 	CreateProject(ctx context.Context, project *models.ProjectsDto, userId uint64) error
 	DeleteProject(ctx context.Context, projectId string) error
 }

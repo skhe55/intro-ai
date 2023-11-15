@@ -19,7 +19,7 @@ func NewProjectsRepository(db *sqlx.DB) projects.Repository {
 	return &projectsRepository{db: db}
 }
 
-func (r *projectsRepository) GetAllProjects(ctx context.Context) ([]models.ProjectsWithImages, error) {
+func (r *projectsRepository) GetAllProjects(ctx context.Context, userId uint64) ([]models.ProjectsWithImages, error) {
 	conn, err := r.db.Connx(ctx)
 	if err != nil {
 		return nil, err
@@ -32,8 +32,10 @@ func (r *projectsRepository) GetAllProjects(ctx context.Context) ([]models.Proje
 		&projects,
 		"select projects.id, projects.name, JSON_AGG(images) as images from projects "+
 			"left join images on projects.id = images.project_id and images.deleted_at is null "+
+			"where projects.user_id = $1 "+
 			"group by projects.id "+
 			"having projects.deleted_at is null",
+		userId,
 	); err != nil {
 		return nil, err
 	}

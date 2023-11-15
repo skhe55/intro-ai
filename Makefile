@@ -23,5 +23,5 @@ dev:
 	air server --port 3001
 
 #run client
-client:
+dev-c:
 	cd client && npm run dev

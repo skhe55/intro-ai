@@ -1,13 +1,16 @@
 <script lang="ts">
 	import { onMount } from "svelte";
-	import { ImageApi } from "$api/index";
+	import { AnnotationApi, ImageApi } from "$api/index";
 	import type { TImage } from "$api/types";
 	import { Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell, Button, Alert, GradientButton, Modal, Fileupload, Label, Helper, Toast, Input } from "flowbite-svelte";
 	import { CheckCircleSolid, CloseCircleSolid } from "flowbite-svelte-icons";
 	import { DEFAULT_API_PATH } from "$constants/index";
     import { format } from 'fecha';
+	import { exportAnnotations } from "../../../lib/utils";
 
     let imagesApi = new ImageApi();
+    let annotationApi = new AnnotationApi();
+
     let images: TImage[] = [];
 
     let uploadedImage: FileList | undefined;
@@ -81,6 +84,15 @@
         })();
     };
 
+    const onExportAnnotations = (id: string) => {
+        (async () => {
+            const response = await annotationApi.getAnnotationByImageId(id);
+            if(response && response.Status === "OK") {
+                exportAnnotations(response.Result);
+            }
+        })();
+    };
+
     onMount(() => {
         (async () => {
            projectId = window.location.pathname.split("/").at(-1);
@@ -137,6 +149,7 @@
                 <TableHeadCell class="w-32">Created</TableHeadCell>
                 <TableHeadCell class="w-16"></TableHeadCell>
                 <TableHeadCell class="w-16"></TableHeadCell>
+                <TableHeadCell class="w-16"></TableHeadCell>
             </TableHead>
             <TableBody>
                 {#each images as image (image.id)}
@@ -151,6 +164,11 @@
                             <a href={`/markup/${image.id}`} class="font-medium text-primary-600 hover:underline dark:text-primary-500">
                                 Open
                             </a>
+                        </TableBodyCell>
+                        <TableBodyCell>
+                            <Button on:click={() => onExportAnnotations(image.id)} color={"alternative"}>
+                                Export annotations
+                            </Button>
                         </TableBodyCell>
                         <TableBodyCell>
                             <Button on:click={() => onDeleteImage(image.id, image.path_to_image)} color={"alternative"}>

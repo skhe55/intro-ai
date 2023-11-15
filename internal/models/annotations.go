@@ -24,7 +24,6 @@ type AnnotationsWithLabelName struct {
 	ID          string      `json:"id" validate:"omitempty"`
 	LabelID     string      `json:"label_id" validate:"required"`
 	LabelName   string      `json:"label_name" validate:"required"`
-	ImageID     string      `json:"image_id" validate:"required"`
 	Coordinates [][]float64 `json:"coordinates" validate:"required"`
 	CreatedAt   time.Time   `json:"created_at" validate:"omitempty"`
 }

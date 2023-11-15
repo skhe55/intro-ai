@@ -42,7 +42,14 @@ func NewProjectsHandlers(
 
 func (h *projectsHandlers) GetAllProjects() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		projects, err := h.projectsService.GetAllProjects(r.Context())
+		claims, err := utils.ExtractJWTFromRequest(r)
+		if err != nil {
+			h.logger.Error(err)
+			h.httpError.InternalError(w)
+			return
+		}
+
+		projects, err := h.projectsService.GetAllProjects(r.Context(), uint64(claims["id"].(float64)))
 		if err != nil {
 			h.httpError.InternalError(w)
 			return
