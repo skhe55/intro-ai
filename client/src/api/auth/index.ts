@@ -1,5 +1,6 @@
 import { DEFAULT_API_PATH } from "$constants/index";
 import type { TSignInPayload, TSignInUpResponse, TSignUpPayload, TStandartApiResponse } from "$api/types";
+import { navigate } from "../../utils";
 
 export class AuthApi {
     signIn = async (payload: TSignInPayload): Promise<TStandartApiResponse<TSignInUpResponse> | null> => {

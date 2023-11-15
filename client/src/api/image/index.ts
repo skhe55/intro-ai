@@ -1,13 +1,13 @@
 import { DEFAULT_API_PATH } from "$constants/index";
 import type { TImage, TImageDeleteDto, TImageDto, TStandartApiResponse } from "$api/types";
+import { customFetch } from "../fetchClient";
 
 export class ImageApi {
     createImage = async (payload: TImageDto): Promise<TStandartApiResponse<string> | null> => {
         try {
-            const response = await fetch(`${DEFAULT_API_PATH}/images/create`, {
+            const response = await customFetch(`${DEFAULT_API_PATH}/images/create`, {
                 method: "POST",
                 headers: {
-                    'Authorization': `Bearer ${window.localStorage.getItem('token') as string}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(payload),
@@ -28,11 +28,8 @@ export class ImageApi {
             const formData = new FormData();
             formData.append("file", file);
 
-            const response = await fetch(`${DEFAULT_API_PATH}/images/upload/${id}?projectId=${projectId}`, {
+            const response = await customFetch(`${DEFAULT_API_PATH}/images/upload/${id}?projectId=${projectId}`, {
                 method: "POST",
-                headers: {
-                    'Authorization': `Bearer ${window.localStorage.getItem('token') as string}`,
-                },
                 body: formData,
             });
 
@@ -49,11 +46,7 @@ export class ImageApi {
 
     getImages = async (projectId: string): Promise<TStandartApiResponse<TImage[]> | null> => {
         try {
-            const response = await fetch(`${DEFAULT_API_PATH}/images/all/${projectId}`, {
-                headers: {
-                    'Authorization': `Bearer ${window.localStorage.getItem('token') as string}`
-                },
-            });
+            const response = await customFetch(`${DEFAULT_API_PATH}/images/all/${projectId}`);
             if (response.ok) {
                 return response.json();
             } else {
@@ -67,11 +60,7 @@ export class ImageApi {
 
     getImageById = async (imageId: string): Promise<TStandartApiResponse<TImage> | null> => {
         try {
-            const response = await fetch(`${DEFAULT_API_PATH}/images/${imageId}`, {
-                headers: {
-                    'Authorization': `Bearer ${window.localStorage.getItem('token')}`
-                },
-            });
+            const response = await customFetch(`${DEFAULT_API_PATH}/images/${imageId}`);
             if (response.ok) {
                 return response.json();
             } else {
@@ -85,10 +74,9 @@ export class ImageApi {
 
     deleteImage = async (imageId: string, dto: TImageDeleteDto): Promise<TStandartApiResponse<string> | null> => {
         try {
-            const response = await fetch(`${DEFAULT_API_PATH}/images/delete/${imageId}`, {
+            const response = await customFetch(`${DEFAULT_API_PATH}/images/delete/${imageId}`, {
                 method: "DELETE",
                 headers: {
-                    'Authorization': `Bearer ${window.localStorage.getItem('token')}`,
                     'Content-Type': "application/json"
                 },
                 body: JSON.stringify(dto)

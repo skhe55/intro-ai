@@ -60,3 +60,18 @@ export type TLabel = {
     image_id: string;
     created_at: Date;
 };
+
+export type TAnnotation = {
+    id: string;
+    label_id: string;
+    coordinates: number[][];
+    created_at: Date;
+};
+
+export type TAnnotationWithLabelNames = TAnnotation & {label_name: string};
+
+export type TAnnotationDto = {
+    label_id: string;
+    image_id: string;
+    coordinates: number[][];
+};

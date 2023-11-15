@@ -1,11 +1,11 @@
 import { DEFAULT_API_PATH } from "$constants/index";
-import type { TLabel, TLabelDto, TStandartApiResponse } from "$api/types";
+import type { TAnnotation, TAnnotationDto, TAnnotationWithLabelNames, TStandartApiResponse } from "$api/types";
 import { customFetch } from "../fetchClient";
 
-export class LabelApi {
-    createLabel = async (payload: TLabelDto): Promise<TStandartApiResponse<string> | null> => {
+export class AnnotationApi {
+    createAnnotation = async (payload: TAnnotationDto): Promise<TStandartApiResponse<string> | null> => {
         try {
-            const response = await customFetch(`${DEFAULT_API_PATH}/labels/create`, {
+            const response = await customFetch(`${DEFAULT_API_PATH}/annotations/create`, {
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/json'
@@ -18,28 +18,28 @@ export class LabelApi {
                 return null;
             }
         } catch(e) {
-            console.error(`createLabel: ${e}`);
+            console.error(`createAnnotation: ${e}`);
             return null;
         }
     };
 
-    getLabelsByImageId = async (imageId: string): Promise<TStandartApiResponse<TLabel[]> | null> => {
+    getAnnotationByImageId = async (imageId: string): Promise<TStandartApiResponse<TAnnotationWithLabelNames[]> | null> => {
         try {
-            const response = await customFetch(`${DEFAULT_API_PATH}/labels?imageId=${imageId}`);
+            const response = await customFetch(`${DEFAULT_API_PATH}/annotations?imageId=${imageId}`);
             if (response.ok) {
                 return response.json();
             } else {
                 return null;
             }
         } catch(e) {
-            console.error(`getImageById: ${e}`);
+            console.error(`getAnnotationByImageId: ${e}`);
             return null;
         }
     };
     
-    deleteLabel = async (id: string): Promise<TStandartApiResponse<string> | null> => {
+    deleteAnnotation = async (id: string): Promise<TStandartApiResponse<string> | null> => {
         try {
-            const response = await customFetch(`${DEFAULT_API_PATH}/labels/delete/${id}`, {
+            const response = await customFetch(`${DEFAULT_API_PATH}/annotations/delete/${id}`, {
                 method: "DELETE",
             });
 
@@ -49,7 +49,7 @@ export class LabelApi {
                 return null;
             }
         } catch(e) {
-            console.error(`deleteLabel: ${e}`);
+            console.error(`deleteAnnotation: ${e}`);
             return null;
         }
     };

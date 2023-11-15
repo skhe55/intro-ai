@@ -53,3 +53,13 @@ func (s *annotationsService) GetAnnotationsByLabelId(ctx context.Context, labelI
 
 	return annotations, nil
 }
+
+func (s *annotationsService) GetAnnotationsByImageId(ctx context.Context, imageId string) ([]models.AnnotationsWithLabelName, error) {
+	annotations, err := s.annotationsRepository.GetAnnotationsByImageId(ctx, imageId)
+	if err != nil {
+		s.logger.Errorf("unable to get list of annotations by image id: %v", err)
+		return nil, err
+	}
+
+	return annotations, nil
+}

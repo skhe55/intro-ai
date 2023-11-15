@@ -202,6 +202,7 @@
         .preview-img {
             width: 60px;
             height: 60px;
+            object-fit: contain;
         }
 	}
 </style>

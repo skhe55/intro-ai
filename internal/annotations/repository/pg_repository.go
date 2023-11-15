@@ -39,8 +39,9 @@ func (r *annotationsRepository) CreateAnnotation(ctx context.Context, dto *model
 
 	if _, err := conn.ExecContext(
 		ctx,
-		"INSERT INTO annotations (label_id, coordinates, created_at) VALUES ($1, $2, $3)",
+		"INSERT INTO annotations (label_id, image_id, coordinates, created_at) VALUES ($1, $2, $3, $4)",
 		dto.LabelID,
+		dto.ImageID,
 		coordinatesToString,
 		time.Now().UTC().Format(time.RFC3339),
 	); err != nil {
@@ -67,6 +68,35 @@ func (r *annotationsRepository) DeleteAnnotation(ctx context.Context, labelId st
 	}
 
 	return nil
+}
+
+func (r *annotationsRepository) GetAnnotationsByImageId(ctx context.Context, imageId string) ([]models.AnnotationsWithLabelName, error) {
+	conn, err := r.db.Connx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close()
+
+	var annotations []AnnotationsWithLabelNameDB
+
+	if err := conn.SelectContext(
+		ctx,
+		&annotations,
+		"SELECT a.id, a.label_id, l.name as label_name, a.coordinates, a.created_at FROM annotations as a INNER JOIN labels as l on a.label_id = l.id WHERE a.image_id = $1 and a.deleted_at iS NULL",
+		imageId,
+	); err != nil {
+		return nil, err
+	}
+
+	return utils.Map[AnnotationsWithLabelNameDB, models.AnnotationsWithLabelName](annotations, func(item AnnotationsWithLabelNameDB, _ int) models.AnnotationsWithLabelName {
+		return models.AnnotationsWithLabelName{
+			ID:          item.ID,
+			LabelID:     item.LabelID,
+			LabelName:   item.LabelName,
+			Coordinates: utils.ConvertStringToFloat64SliceOfSlices(string(item.Coordinates)),
+			CreatedAt:   item.CreatedAt,
+		}
+	}), nil
 }
 
 func (r *annotationsRepository) GetAnnotationsByLabelId(ctx context.Context, labelId string) ([]models.Annotations, error) {
@@ -100,6 +130,14 @@ func (r *annotationsRepository) GetAnnotationsByLabelId(ctx context.Context, lab
 type AnnotationsDB struct {
 	ID          string    `db:"id"`
 	LabelID     string    `db:"label_id"`
+	Coordinates []uint8   `db:"coordinates"`
+	CreatedAt   time.Time `db:"created_at"`
+}
+
+type AnnotationsWithLabelNameDB struct {
+	ID          string    `db:"id"`
+	LabelID     string    `db:"label_id"`
+	LabelName   string    `db:"label_name"`
 	Coordinates []uint8   `db:"coordinates"`
 	CreatedAt   time.Time `db:"created_at"`
 }

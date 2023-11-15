@@ -1,18 +1,25 @@
 <script lang="ts">
 	import { afterUpdate, onMount } from "svelte";
   import { Stage, Layer, Rect, Image, type KonvaMouseEvent, Label, Tag, Text } from 'svelte-konva';
-	import { ImageApi, LabelApi } from "$api/index";
+	import { AnnotationApi, ImageApi, LabelApi } from "$api/index";
 	import type { TImage, TLabel } from "$api/types";
 	import { DEFAULT_API_PATH, initialSquareCoordinates } from "$constants/index";
 	import { Alert, Badge, Button, GradientButton, Input, Modal, Select, Label as TextLabel, Toast } from "flowbite-svelte";
 	import type { TSquare } from "$lib/types";
 	import Square from "$lib/shapes/square.svelte";
-	import { getPointsUpperRightCorner } from "$lib/utils";
+	import { getPointsUpperRightCorner, mappingAnnotationsToSquare } from "$lib/utils";
 	import { ExclamationCircleSolid } from "flowbite-svelte-icons";
+	  
+  const STAGE_WIDTH = 600;
+  const STAGE_HEIGHT = 600;
+
+  let imageWidth: number;
+  let imageHeight: number;
 
   let uuid = crypto.randomUUID();
   const imagesApi = new ImageApi();
   const labelApi = new LabelApi();
+  const annotationApi = new AnnotationApi();
 
   let imageId: string | undefined = '';
   let currentImage: TImage;
@@ -27,7 +34,7 @@
   let isWatchMode: boolean = false;
   let isEditMode: boolean = false;
   let squares: TSquare[] = [];
-  let squareCoords: Omit<TSquare, 'id' | 'label_name'> = initialSquareCoordinates;
+  let squareCoords: Omit<TSquare, 'id' | 'label_name' | 'restored'> = initialSquareCoordinates;
 
   let labelConfig = {
     x: 0,
@@ -81,6 +88,40 @@
       })();
   };
 
+  const onCreateAnnotation = (labelId: string, coordinates: number[][]) => {
+    (async () => {
+      const response = await annotationApi.createAnnotation({label_id: labelId, image_id: currentImage.id, coordinates: coordinates});
+      if(response && response.Status === "OK") {
+        onShowToast(`Successful created annotation!`, true, "green");
+        setTimeout(() => {
+            onShowToast("", false, "green");
+        }, 5000);
+      } else {
+        onShowToast(`Error occured while we creating annotation!`, true, "red");
+        setTimeout(() => {
+            onShowToast("", false, "red");
+        }, 5000);
+      }
+    })();
+  };
+
+  const onDeleteAnnotation = (annotationId: string) => {
+    (async () => {
+      const response = await annotationApi.deleteAnnotation(annotationId);
+      if(response && response.Status === "OK") {
+        onShowToast(`Successful deleted annotation!`, true, "green");
+        setTimeout(() => {
+          onShowToast("", false, "green");
+        }, 5000);
+      } else {
+        onShowToast(`Error occured while we deleting annotation!`, true, "red");
+        setTimeout(() => {
+          onShowToast("", false, "red");
+        }, 5000);
+      }
+    })();
+  };
+
   const onStartMarking = (e: KonvaMouseEvent) => {
     if(!selectedLabel || !selectedLabel.id) {
       onShowToast(`You don't choise a label, before starting mark it up, needed select label!`, true, "orange");
@@ -90,8 +131,9 @@
     } else {
       const { evt } = e.detail;
       if (isMarkupMode) {
-        squares = [...squares, { ...squareCoords, id: uuid, label_name: selectedLabel.name }];
+        squares = [...squares, { ...squareCoords, id: uuid, label_name: selectedLabel.name, restored: false }];
         isMarkupMode = false;
+        onCreateAnnotation(selectedLabel.id, [squareCoords.x_top, squareCoords.x_bottom, squareCoords.y_top, squareCoords.y_bottom]);
       } else if (!isEditMode && !isMarkupMode && !isWatchMode) {
         squareCoords = {
           x_top: [evt.offsetX, evt.offsetY],
@@ -106,18 +148,23 @@
 
   const onMouseMove = (e: KonvaMouseEvent) => {
 		const { evt } = e.detail;
+    const imgPosition = e.detail.target.getRelativePointerPosition() as any;
+
 		if (isMarkupMode) {
 			squareCoords = {
-				x_top: squareCoords.x_top,
-				x_bottom: [squareCoords.x_top[0], evt.offsetY],
-				y_top: [evt.offsetX, squareCoords.x_top[1]],
-				y_bottom: [evt.offsetX, evt.offsetY]
+				x_top: [squareCoords.x_top[0], squareCoords.x_top[1]],
+				x_bottom: [squareCoords.x_top[0], evt.offsetY + imgPosition.y],
+				y_top: [evt.offsetX + imgPosition.x, squareCoords.x_top[1]],
+				y_bottom: [evt.offsetX + imgPosition.x, evt.offsetY + imgPosition.y]
 			};
 		}
 	};
 
-  const onRemoveItem = (_: KonvaMouseEvent, id: string) => {
+  const onRemoveItem = (_: KonvaMouseEvent, id: string, restored: boolean) => {
 		squares = squares.filter((item) => item.id !== id);
+    if(restored) {
+      onDeleteAnnotation(id)
+    };
 	};
 
   const onMouseEnter = (e: KonvaMouseEvent) => {
@@ -165,8 +212,13 @@
             if(labelsResponse && labelsResponse.Status === "OK") {
               labels = [...labelsResponse.Result];
             }
+            const annotationsResponse = await annotationApi.getAnnotationByImageId(currentImage.id);
+            if (annotationsResponse && annotationsResponse.Status === "OK") {
+              squares = mappingAnnotationsToSquare(annotationsResponse.Result);
+            }
             const img = document.createElement('img') as HTMLImageElement;
             img.src = `${DEFAULT_API_PATH}/static/${response.Result.projectId}/${response.Result.path_to_image}`;
+
             img.onload = () => {
               imageElem = img;
             };
@@ -210,12 +262,12 @@
   </div>
   <div class="workspace-container">
     <Stage
-      config={{ width: 600, height: 600 }}
+      config={{ width: STAGE_WIDTH, height: STAGE_HEIGHT}}
       on:mousemove={onMouseMove}
       on:click={onStartMarking}
     >
       <Layer>
-        <Image config={{ image: imageElem, width: 600, height: 600 }} />
+        <Image config={{ image: imageElem, width: imageWidth, height: imageHeight, draggable: true }} />
         {#if isMarkupMode}
           <Rect
             config={{
@@ -246,7 +298,7 @@
               stroke: 'red',
               strokeWidth: 4
             }}
-            crossOnClick={(e) => onRemoveItem(e, square.id)}
+            crossOnClick={(e) => onRemoveItem(e, square.id, square.restored)}
             isShowCross={isEditMode}
           />
         {/each}
@@ -275,6 +327,20 @@
           <option value={{id: label.id, name: label.name}}>{label.name}</option>
         {/each}
       </Select>
+      <Alert color="green">
+        <p class="font-medium">
+          Hotkeys:
+        </p>
+        <p class="font-medium">
+          Esc: reset all mods (use if during the process you realize that you do not want save annotation)
+        </p>
+        <p class="font-medium">
+          W: enable watch mode
+        </p>
+        <p class="font-medium">
+          E: enable edit mode
+        </p>
+      </Alert>
       {#if isShowToast.f}
         <Toast color={isShowToast.color}>
           <svelte:fragment slot="icon">

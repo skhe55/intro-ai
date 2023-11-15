@@ -21,3 +21,7 @@ start:
 	go run ./cmd/main.go
 dev:
 	air server --port 3001
+
+#run client
+client:
+	cd client && npm run dev

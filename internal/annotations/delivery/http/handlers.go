@@ -86,27 +86,44 @@ func (h *annotationsHandlers) DeleteAnnotation() http.HandlerFunc {
 	}
 }
 
-func (h *annotationsHandlers) GetAnnotationsByLabelId() http.HandlerFunc {
+func (h *annotationsHandlers) GetAnnotationsByLabelIdOrImageId() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		labelId := httpHelper.RetriveIdFromUrlPath(r.URL.Path)
-		if labelId == "" {
-			h.httpError.NonInternalError(w, http.StatusBadRequest, httpError.WRONG_ID)
-			return
-		}
+		if r.URL.Query().Has("imageId") && !r.URL.Query().Has("labelId") {
+			imageIds := r.URL.Query()["imageId"]
 
-		annotations, err := h.annotationsService.GetAnnotationsByLabelId(r.Context(), labelId)
-		if err != nil {
-			h.httpError.InternalError(w)
-			return
-		}
+			annotations, err := h.annotationsService.GetAnnotationsByImageId(r.Context(), imageIds[0])
+			if err != nil {
+				h.httpError.InternalError(w)
+				return
+			}
 
-		res, err := utils.ToJSON[response.Response](response.OK(response.StatusOK, annotations))
-		if err != nil {
-			h.httpError.InternalError(w)
-			return
-		}
+			res, err := utils.ToJSON[response.Response](response.OK(response.StatusOK, annotations))
+			if err != nil {
+				h.httpError.InternalError(w)
+				return
+			}
 
-		w.WriteHeader(http.StatusOK)
-		w.Write(res)
+			w.WriteHeader(http.StatusOK)
+			w.Write(res)
+		} else if r.URL.Query().Has("labelId") && !r.URL.Query().Has("imageId") {
+			labelIds := r.URL.Query()["labelId"]
+
+			annotations, err := h.annotationsService.GetAnnotationsByLabelId(r.Context(), labelIds[0])
+			if err != nil {
+				h.httpError.InternalError(w)
+				return
+			}
+
+			res, err := utils.ToJSON[response.Response](response.OK(response.StatusOK, annotations))
+			if err != nil {
+				h.httpError.InternalError(w)
+				return
+			}
+
+			w.WriteHeader(http.StatusOK)
+			w.Write(res)
+		} else {
+			h.httpError.NonInternalError(w, http.StatusBadRequest, httpError.WRONG_DTO)
+		}
 	}
 }

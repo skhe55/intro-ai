@@ -14,6 +14,7 @@ export type TCanvasItem = {
 export type TSquare = {
 	id: string;
 	label_name: string;
+	restored: boolean;
 	x_top: TPoint;
 	x_bottom: TPoint;
 	y_top: TPoint;
