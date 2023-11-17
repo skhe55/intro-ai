@@ -28,7 +28,7 @@ func (u *authService) Register(ctx context.Context, user *models.User) (*models.
 
 	createdUser.SanitizePassword()
 
-	token, expiresAt, err := utils.GenerateJWT(user, u.cfg)
+	token, expiresAt, err := utils.GenerateJWT(createdUser, u.cfg)
 	if err != nil {
 		return nil, err
 	}

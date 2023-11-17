@@ -1,6 +1,19 @@
 version: '3.1'
 
 services:
+  server: 
+    container_name: server-intro
+    build:
+      context: ../
+      dockerfile: ./docker/server.Dockerfile
+    restart: always
+    ports:
+      - 3000:3000
+    depends_on: 
+      - db
+      - ftp
+    volumes: 
+      - ftp:/app/ftpdata
   db:
     image: postgres:15
     container_name: intro_db
@@ -22,7 +35,7 @@ services:
       - '21:21/tcp'
       - '21100-21110:21100-21110/tcp'
     volumes:
-      - '/home/ikbkr/projects/intro-ai/ftpdata:/home/vsftpd:z'
+      - 'ftp:/home/vsftpd:z'
 volumes:
   db:
   ftp:
