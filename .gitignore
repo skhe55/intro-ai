@@ -1,7 +1,4 @@
 *.toml
-*.env
 
 tmp/
 ftpdata/
-
-config.yaml

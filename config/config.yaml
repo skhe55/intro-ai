@@ -1,0 +1,12 @@
+psql_dsn: postgres://postgres:root@db:5432/intro-ai?sslmode=disable
+jwt_secret_key: "uhs&239"
+logger: 
+  Development: true
+  DisableCaller: false
+  DisableStacktrace: false
+  Encoding: json
+  Level: info
+origin_remote: http://localhost:3001
+ftp_connection_string: ftp:21
+ftp_user_login: ikbkr
+ftp_user_password: secret
